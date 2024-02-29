@@ -58,6 +58,7 @@
 * [setLeverage](#setleverage)
 * [setMarginMode](#setmarginmode)
 * [setPositionMode](#setpositionmode)
+* [fetchLeverage](#fetchleverage)
 * [fetchSettlementHistory](#fetchsettlementhistory)
 * [fetchMySettlementHistory](#fetchmysettlementhistory)
 * [fetchLedger](#fetchledger)
@@ -1636,6 +1637,33 @@ binance.setPositionMode (hedged, symbol[, params])
 ```
 
 
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**
+
+- https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+- https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+- https://binance-docs.github.io/apidocs/pm/en/#get-um-account-detail-user_data
+- https://binance-docs.github.io/apidocs/pm/en/#get-cm-account-detail-user_data
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+binance.fetchLeverage (symbol[, params])
+```
+
+
 <a name="fetchSettlementHistory" id="fetchsettlementhistory"></a>
 
 ### fetchSettlementHistory{docsify-ignore}
@@ -2346,6 +2374,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to watch the balance of a portfolio margin account |
 
 
 ```javascript
@@ -2551,7 +2580,12 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>binance</code>](#binance)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://binance-docs.github.io/apidocs/spot/en/#payload-order-update  
+**See**
+
+- https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+- https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
+- https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -2560,6 +2594,7 @@ watches information on multiple orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code>, <code>undefined</code> | No | 'cross' or 'isolated', for spot margin |
+| params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to watch portfolio margin account orders |
 
 
 ```javascript
@@ -2576,10 +2611,11 @@ watch all open positions
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | list of unified market symbols |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to watch positions in a portfolio margin account |
 
 
 ```javascript
@@ -2651,6 +2687,7 @@ watches information on multiple trades made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to watch trades in a portfolio margin account |
 
 
 ```javascript

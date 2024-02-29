@@ -7,6 +7,9 @@
 - [Supported Exchanges](Exchange-Markets.md)
 - [Exchanges By Country](Exchange-Markets-By-Country.md)
 - [API Spec By Method](baseSpec.md)
+- [FAQ](FAQ.md)
+- [Changelog](CHANGELOG.md)
+- [Awesome](Awesome.md)
 - API Spec by Exchange
 	- [ace](exchanges/ace.md)
 	- [alpaca](exchanges/alpaca.md)
@@ -98,5 +101,3 @@
 	- [yobit](exchanges/yobit.md)
 	- [zaif](exchanges/zaif.md)
 	- [zonda](exchanges/zonda.md)
-- [Changelog](CHANGELOG.md)
-- [Awesome](Awesome.md)

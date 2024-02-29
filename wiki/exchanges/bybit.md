@@ -43,6 +43,7 @@
 * [withdraw](#withdraw)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
+* [fetchLeverage](#fetchleverage)
 * [setMarginMode](#setmarginmode)
 * [setLeverage](#setleverage)
 * [setPositionMode](#setpositionmode)
@@ -1032,6 +1033,27 @@ fetch all open positions
 
 ```javascript
 bybit.fetchPositions (symbols[, params])
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/position  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchLeverage (symbol[, params])
 ```
 
 

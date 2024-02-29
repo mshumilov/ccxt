@@ -2227,9 +2227,11 @@ fetch the set leverage for a market
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [binance](/exchanges/binance.md#binancefetchleverage)
 * [bingx](/exchanges/bingx.md#bingxfetchleverage)
 * [bitget](/exchanges/bitget.md#bitgetfetchleverage)
 * [blofin](/exchanges/blofin.md#blofinfetchleverage)
+* [bybit](/exchanges/bybit.md#bybitfetchleverage)
 * [currencycom](/exchanges/currencycom.md#currencycomfetchleverage)
 * [delta](/exchanges/delta.md#deltafetchleverage)
 * [hitbtc](/exchanges/hitbtc.md#hitbtcfetchleverage)
@@ -5149,10 +5151,11 @@ watch all open positions
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | list of unified market symbols |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to watch positions in a portfolio margin account |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binancewatchpositions)
