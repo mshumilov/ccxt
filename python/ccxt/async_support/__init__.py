@@ -150,6 +150,7 @@ from ccxt.async_support.poloniex import poloniex                                
 from ccxt.async_support.poloniexfutures import poloniexfutures                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
+from ccxt.async_support.tinkoff import tinkoff                                  # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
@@ -252,6 +253,7 @@ exchanges = [
     'poloniexfutures',
     'probit',
     'timex',
+    'tinkoff',
     'tokocrypto',
     'upbit',
     'wavesexchange',

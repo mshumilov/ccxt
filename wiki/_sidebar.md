@@ -92,6 +92,7 @@
 	- [poloniexfutures](exchanges/poloniexfutures.md)
 	- [probit](exchanges/probit.md)
 	- [timex](exchanges/timex.md)
+	- [alpaca](exchanges/alpaca.md)
 	- [tokocrypto](exchanges/tokocrypto.md)
 	- [upbit](exchanges/upbit.md)
 	- [wavesexchange](exchanges/wavesexchange.md)

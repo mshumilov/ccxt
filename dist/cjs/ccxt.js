@@ -103,6 +103,7 @@ var poloniex = require('./src/poloniex.js');
 var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
+var tinkoff = require('./src/tinkoff.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var upbit = require('./src/upbit.js');
 var wavesexchange = require('./src/wavesexchange.js');
@@ -270,6 +271,7 @@ const exchanges = {
     'poloniexfutures': poloniexfutures,
     'probit': probit,
     'timex': timex,
+    'tinkoff': tinkoff,
     'tokocrypto': tokocrypto,
     'upbit': upbit,
     'wavesexchange': wavesexchange,
@@ -475,6 +477,7 @@ exports.poloniex = poloniex;
 exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
 exports.timex = timex;
+exports.tinkoff = tinkoff;
 exports.tokocrypto = tokocrypto;
 exports.upbit = upbit;
 exports.wavesexchange = wavesexchange;
