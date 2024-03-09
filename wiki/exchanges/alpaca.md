@@ -7,7 +7,6 @@
 
 * [fetchTrades](#fetchtrades)
 * [fetchOrderBook](#fetchorderbook)
-* [fetchOHLCV](#fetchohlcv)
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
@@ -65,36 +64,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 alpaca.fetchOrderBook (symbol[, limit, params])
-```
-
-
-<a name="fetchOHLCV" id="fetchohlcv"></a>
-
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**
-
-- https://docs.alpaca.markets/reference/cryptobars
-- https://docs.alpaca.markets/reference/cryptolatestbars
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the alpha api endpoint |
-| params.loc | <code>string</code> | No | crypto location, default: us |
-| params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
-
-
-```javascript
-alpaca.fetchOHLCV (symbol, timeframe[, since, limit, params])
 ```
 
 

@@ -1,1 +1,1 @@
-../CHANGELOG.md
+/home/ms/disk/dev/ccxt/CHANGELOG.md

@@ -127,14 +127,19 @@ class tinkoff(Exchange, ImplicitAPI):
                 },
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '30m': '30min',
-                '1h': '1H',
-                '4h': '4H',
-                '1d': '1D',
-                '1w': '1W',
-                '1M': '1M',
+                '1m': 'CANDLE_INTERVAL_1_MIN',
+                '2m': 'CANDLE_INTERVAL_2_MIN',
+                '3m': 'CANDLE_INTERVAL_3_MIN',
+                '5m': 'CANDLE_INTERVAL_5_MIN',
+                '10m': 'CANDLE_INTERVAL_10_MIN',
+                '15m': 'CANDLE_INTERVAL_15_MIN',
+                '30m': 'CANDLE_INTERVAL_15_MIN',
+                '1h': 'CANDLE_INTERVAL_HOUR',
+                '2h': 'CANDLE_INTERVAL_2_HOUR',
+                '4h': 'CANDLE_INTERVAL_4_HOUR',
+                '1d': 'CANDLE_INTERVAL_DAY',
+                '1w': 'CANDLE_INTERVAL_WEEK',
+                '1M': 'CANDLE_INTERVAL_MONTH',
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
@@ -145,6 +150,7 @@ class tinkoff(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
+                    '3': 'Could not fetch historical candles due to ExchangeNotAvailable',
                     '40003': PermissionDenied,
                     '80002': RateLimitExceeded,
                 },
@@ -159,51 +165,61 @@ class tinkoff(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         request = {
-            'asset_class': 'crypto',
-            'status': 'active',
+            'instrumentStatus': 'INSTRUMENT_STATUS_BASE',
         }
-        assets = await self.instrumentsPostEtfs(self.extend(request, params))
-        print(assets)
-        return self.parse_markets(assets)
+        etfs = await self.instrumentsPostEtfs(self.extend(request, params))
+        markets = self.parse_markets(etfs['instruments'])
+        return markets
 
     def parse_market(self, asset) -> Market:
         #
-        #     {
-        #         "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
-        #         "class": "crypto",
-        #         "exchange": "CRYPTO",
-        #         "symbol": "BTC/USDT",
-        #         "name": "Bitcoin / USD Tether",
-        #         "status": "active",
-        #         "tradable": True,
-        #         "marginable": False,
-        #         "maintenance_margin_requirement": 100,
-        #         "shortable": False,
-        #         "easy_to_borrow": False,
-        #         "fractionable": True,
-        #         "attributes": [],
-        #         "min_order_size": "0.000026873",
-        #         "min_trade_increment": "0.000000001",
-        #         "price_increment": "1"
-        #     }
+        # {
+        #     'figi': 'BBG00KLHY7D7',
+        #     'ticker': 'DRIV',
+        #     'classCode': 'SPBXM',
+        #     'isin': 'US37954Y6243',
+        #     'lot': '1',
+        #     'currency': 'usd',
+        #     'shortEnabledFlag': False,
+        #     'name': 'Global X Autonomous & Electric Vehicles ETF',
+        #     'exchange': 'spb_close',
+        #     'focusType': 'equity',
+        #     'countryOfRisk': 'US',
+        #     'countryOfRiskName': 'Соединенные Штаты Америки',
+        #     'sector': '',
+        #     'rebalancingFreq': '',
+        #     'tradingStatus': 'SECURITY_TRADING_STATUS_NOT_AVAILABLE_FOR_TRADING',
+        #     'otcFlag': False,
+        #     'buyAvailableFlag': True,
+        #     'sellAvailableFlag': True,
+        #     'minPriceIncrement': {'units': '0', 'nano': '10000000'},
+        #     'apiTradeAvailableFlag': True,
+        #     'uid': '1e15b3a8-9a46-44af-8cf1-59893d0c478f',
+        #     'positionUid': 'c76c4b4c-74b2-41d5-902a-da8a1848c5a5',
+        #     'assetUid': 'f9f2e0e0-3f73-4ecd-a3bb-363e29058ed6',
+        #     'forIisFlag': False,
+        #     'forQualInvestorFlag': True,
+        #     'weekendFlag': False,
+        #     'blockedTcaFlag': False,
+        #     'liquidityFlag': True,
+        #     'first1minCandleDate': '2023-01-23T12:31:00Z',
+        #     'first1dayCandleDate': '2023-01-23T07:00:00Z',
+        #     'brand': {'logoName': 'US37954Y6243.png', 'logoBaseColor': '#FF4E00', 'textColor': '#ffffff'}
+        # }
         #
-        marketId = self.safe_string(asset, 'symbol')
-        parts = marketId.split('/')
-        assetClass = self.safe_string(asset, 'class')
-        baseId = self.safe_string(parts, 0)
-        quoteId = self.safe_string(parts, 1)
+        marketId = self.safe_string(asset, 'uid')
+        baseId = self.safe_string(asset, 'ticker')
+        quoteId = self.safe_string(asset, 'currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        # Us equity markets do not include quote in symbol.
-        # We can safely coerce us_equity quote to USD
-        if quote is None and assetClass == 'us_equity':
-            quote = 'USD'
-        symbol = base + '/' + quote
-        status = self.safe_string(asset, 'status')
-        active = (status == 'active')
-        minAmount = self.safe_number(asset, 'min_order_size')
-        amount = self.safe_number(asset, 'min_trade_increment')
-        price = self.safe_number(asset, 'price_increment')
+        symbol = base
+        active = self.safe_value(asset, 'forIisFlag')
+        minAmount = self.safe_number(asset, 'lot')
+        amount = 1
+        increment = self.safe_value(asset, 'minPriceIncrement')
+        units = self.safe_number(increment, 'units')
+        nano = self.safe_number(increment, 'nano')
+        price = units + nano / 1000000000
         return {
             'id': marketId,
             'symbol': symbol,
@@ -376,35 +392,38 @@ class tinkoff(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = 0, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.alpaca.markets/reference/cryptobars
-        :see: https://docs.alpaca.markets/reference/cryptolatestbars
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the alpha api endpoint
-        :param str [params.loc]: crypto location, default: us
-        :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocBars
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        loc = self.safe_string(params, 'loc', 'us')
         request = {
-            'symbols': marketId,
-            'loc': loc,
+            'instrumentId': marketId,
         }
-        params = self.omit(params, ['loc', 'method'])
-        if limit is not None:
-            request['limit'] = limit
-        if since is not None:
-            request['start'] = self.yyyymmdd(since)
-        request['timeframe'] = self.safe_string(self.timeframes, timeframe, timeframe)
+        # request.instrumentId = '9654c2dd-6993-427e-80fa-04e80a1cf4da'
+        duration = self.parse_timeframe(timeframe)
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
+        defaultLimit = self.safe_integer(options, 'limit', 500)
+        if limit is None:
+            limit = defaultLimit
+        else:
+            limit = min(limit, defaultLimit)
+        to = self.sum(since, limit * duration * 1000, 1)
+        request['from'] = self.ymdhms(since)
+        request['to'] = self.ymdhms(to)
+        request['interval'] = self.safe_string(self.timeframes, timeframe, 'CANDLE_INTERVAL_UNSPECIFIED')
+        self.log('request', request)
         response = await self.marketdataPostGetCandles(self.extend(request, params))
+        self.log('response', response)
+        self.log('response2', len(response))
+        self.log('response3', response.keys())
         #
         #    {
         #        "bars":{
@@ -856,34 +875,32 @@ class tinkoff(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='instruments', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][api[0]])
+        url = self.implode_hostname(self.urls['api'][api]) + endpoint
         headers = headers if (headers is not None) else {}
-        if api[1] == 'private':
-            headers['APCA-API-KEY-ID'] = self.apiKey
-            headers['APCA-API-SECRET-KEY'] = self.secret
+        self.check_required_credentials()
+        headers['Authorization'] = 'Bearer ' + self.apiKey
         query = self.omit(params, self.extract_params(path))
         if query:
-            if (method == 'GET') or (method == 'DELETE'):
-                endpoint += '?' + self.urlencode(query)
-            else:
-                body = self.json(query)
-                headers['Content-Type'] = 'application/json'
-        url = url + endpoint
+            body = self.json(query)
+            headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return None  # default error handler
         # {
-        #     "code": 40110000,
-        #     "message": "request is not authorized"
+        #     "code": 16,
+        #     "message": "authentication token is missing or invalid",
+        #     "description": "40003"
         # }
         feedback = self.id + ' ' + body
         errorCode = self.safe_string(response, 'code')
+        detailedErrorCode = self.safe_string(response, 'description')
         if code is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], detailedErrorCode, feedback)
         message = self.safe_value(response, 'message', None)
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)

@@ -52,7 +52,6 @@ export default class tinkoff extends Exchange {
                 'doc': 'https://russianinvestments.github.io/investAPI/',
             },
             'has': {
-                'publicAPI': false,
                 'CORS': false,
                 'spot': true,
                 'margin': false,
@@ -97,6 +96,7 @@ export default class tinkoff extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'publicAPI': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
@@ -125,14 +125,19 @@ export default class tinkoff extends Exchange {
                 },
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '30m': '30min',
-                '1h': '1H',
-                '4h': '4H',
-                '1d': '1D',
-                '1w': '1W',
-                '1M': '1M',
+                '1m': 'CANDLE_INTERVAL_1_MIN',
+                '2m': 'CANDLE_INTERVAL_2_MIN',
+                '3m': 'CANDLE_INTERVAL_3_MIN',
+                '5m': 'CANDLE_INTERVAL_5_MIN',
+                '10m': 'CANDLE_INTERVAL_10_MIN',
+                '15m': 'CANDLE_INTERVAL_15_MIN',
+                '30m': 'CANDLE_INTERVAL_15_MIN',
+                '1h': 'CANDLE_INTERVAL_HOUR',
+                '2h': 'CANDLE_INTERVAL_2_HOUR',
+                '4h': 'CANDLE_INTERVAL_4_HOUR',
+                '1d': 'CANDLE_INTERVAL_DAY',
+                '1w': 'CANDLE_INTERVAL_WEEK',
+                '1M': 'CANDLE_INTERVAL_MONTH',
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
@@ -142,6 +147,7 @@ export default class tinkoff extends Exchange {
             'options': {},
             'exceptions': {
                 'exact': {
+                    '3': 'Could not fetch historical candles due to ExchangeNotAvailable',
                     '40003': PermissionDenied,
                     '80002': RateLimitExceeded,
                 },
@@ -158,52 +164,61 @@ export default class tinkoff extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const request = {
-            'asset_class': 'crypto',
-            'status': 'active',
+            'instrumentStatus': 'INSTRUMENT_STATUS_BASE',
         };
-        const assets = await this.instrumentsPostEtfs(this.extend(request, params));
-        console.log(assets);
-        return this.parseMarkets(assets);
+        const etfs = await this.instrumentsPostEtfs(this.extend(request, params));
+        const markets = this.parseMarkets(etfs['instruments']);
+        return markets;
     }
     parseMarket(asset) {
         //
-        //     {
-        //         "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
-        //         "class": "crypto",
-        //         "exchange": "CRYPTO",
-        //         "symbol": "BTC/USDT",
-        //         "name": "Bitcoin / USD Tether",
-        //         "status": "active",
-        //         "tradable": true,
-        //         "marginable": false,
-        //         "maintenance_margin_requirement": 100,
-        //         "shortable": false,
-        //         "easy_to_borrow": false,
-        //         "fractionable": true,
-        //         "attributes": [],
-        //         "min_order_size": "0.000026873",
-        //         "min_trade_increment": "0.000000001",
-        //         "price_increment": "1"
-        //     }
+        // {
+        //     'figi': 'BBG00KLHY7D7',
+        //     'ticker': 'DRIV',
+        //     'classCode': 'SPBXM',
+        //     'isin': 'US37954Y6243',
+        //     'lot': '1',
+        //     'currency': 'usd',
+        //     'shortEnabledFlag': False,
+        //     'name': 'Global X Autonomous & Electric Vehicles ETF',
+        //     'exchange': 'spb_close',
+        //     'focusType': 'equity',
+        //     'countryOfRisk': 'US',
+        //     'countryOfRiskName': 'Соединенные Штаты Америки',
+        //     'sector': '',
+        //     'rebalancingFreq': '',
+        //     'tradingStatus': 'SECURITY_TRADING_STATUS_NOT_AVAILABLE_FOR_TRADING',
+        //     'otcFlag': False,
+        //     'buyAvailableFlag': True,
+        //     'sellAvailableFlag': True,
+        //     'minPriceIncrement': {'units': '0', 'nano': '10000000'},
+        //     'apiTradeAvailableFlag': True,
+        //     'uid': '1e15b3a8-9a46-44af-8cf1-59893d0c478f',
+        //     'positionUid': 'c76c4b4c-74b2-41d5-902a-da8a1848c5a5',
+        //     'assetUid': 'f9f2e0e0-3f73-4ecd-a3bb-363e29058ed6',
+        //     'forIisFlag': False,
+        //     'forQualInvestorFlag': True,
+        //     'weekendFlag': False,
+        //     'blockedTcaFlag': False,
+        //     'liquidityFlag': True,
+        //     'first1minCandleDate': '2023-01-23T12:31:00Z',
+        //     'first1dayCandleDate': '2023-01-23T07:00:00Z',
+        //     'brand': {'logoName': 'US37954Y6243.png', 'logoBaseColor': '#FF4E00', 'textColor': '#ffffff'}
+        // }
         //
-        const marketId = this.safeString(asset, 'symbol');
-        const parts = marketId.split('/');
-        const assetClass = this.safeString(asset, 'class');
-        const baseId = this.safeString(parts, 0);
-        const quoteId = this.safeString(parts, 1);
+        const marketId = this.safeString(asset, 'uid');
+        const baseId = this.safeString(asset, 'ticker');
+        const quoteId = this.safeString(asset, 'currency');
         const base = this.safeCurrencyCode(baseId);
-        let quote = this.safeCurrencyCode(quoteId);
-        // Us equity markets do not include quote in symbol.
-        // We can safely coerce us_equity quote to USD
-        if (quote === undefined && assetClass === 'us_equity') {
-            quote = 'USD';
-        }
-        const symbol = base + '/' + quote;
-        const status = this.safeString(asset, 'status');
-        const active = (status === 'active');
-        const minAmount = this.safeNumber(asset, 'min_order_size');
-        const amount = this.safeNumber(asset, 'min_trade_increment');
-        const price = this.safeNumber(asset, 'price_increment');
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base;
+        const active = this.safeValue(asset, 'forIisFlag');
+        const minAmount = this.safeNumber(asset, 'lot');
+        const amount = 1;
+        const increment = this.safeValue(asset, 'minPriceIncrement');
+        const units = this.safeNumber(increment, 'units');
+        const nano = this.safeNumber(increment, 'nano');
+        const price = units + nano / 1000000000;
         return {
             'id': marketId,
             'symbol': symbol,
@@ -383,39 +398,42 @@ export default class tinkoff extends Exchange {
         const timestamp = this.parse8601(this.safeString(rawOrderbook, 't'));
         return this.parseOrderBook(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
-    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV(symbol, timeframe = '1m', since = 0, limit = undefined, params = {}) {
         /**
          * @method
-         * @name alpaca#fetchOHLCV
+         * @name tinkoff#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.alpaca.markets/reference/cryptobars
-         * @see https://docs.alpaca.markets/reference/cryptolatestbars
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the alpha api endpoint
-         * @param {string} [params.loc] crypto location, default: us
-         * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketId = market['id'];
-        const loc = this.safeString(params, 'loc', 'us');
         const request = {
-            'symbols': marketId,
-            'loc': loc,
+            'instrumentId': marketId,
         };
-        params = this.omit(params, ['loc', 'method']);
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        // request.instrumentId = '9654c2dd-6993-427e-80fa-04e80a1cf4da'
+        const duration = this.parseTimeframe(timeframe);
+        const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        const defaultLimit = this.safeInteger(options, 'limit', 500);
+        if (limit === undefined) {
+            limit = defaultLimit;
         }
-        if (since !== undefined) {
-            request['start'] = this.yyyymmdd(since);
+        else {
+            limit = Math.min(limit, defaultLimit);
         }
-        request['timeframe'] = this.safeString(this.timeframes, timeframe, timeframe);
+        const to = this.sum(since, limit * duration * 1000, 1);
+        request['from'] = this.ymdhms(since);
+        request['to'] = this.ymdhms(to);
+        request['interval'] = this.safeString(this.timeframes, timeframe, 'CANDLE_INTERVAL_UNSPECIFIED');
+        this.log('request', request);
         const response = await this.marketdataPostGetCandles(this.extend(request, params));
+        this.log('response', response);
+        this.log('response2', response.length);
+        this.log('response3', response.keys());
         //
         //    {
         //        "bars":{
@@ -897,25 +915,17 @@ export default class tinkoff extends Exchange {
             'fee': undefined,
         }, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let endpoint = '/' + this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][api[0]]);
+    sign(path, api = 'instruments', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const endpoint = '/' + this.implodeParams(path, params);
+        const url = this.implodeHostname(this.urls['api'][api]) + endpoint;
         headers = (headers !== undefined) ? headers : {};
-        if (api[1] === 'private') {
-            headers['APCA-API-KEY-ID'] = this.apiKey;
-            headers['APCA-API-SECRET-KEY'] = this.secret;
-        }
+        this.checkRequiredCredentials();
+        headers['Authorization'] = 'Bearer ' + this.apiKey;
         const query = this.omit(params, this.extractParams(path));
         if (Object.keys(query).length) {
-            if ((method === 'GET') || (method === 'DELETE')) {
-                endpoint += '?' + this.urlencode(query);
-            }
-            else {
-                body = this.json(query);
-                headers['Content-Type'] = 'application/json';
-            }
+            body = this.json(query);
+            headers['Content-Type'] = 'application/json';
         }
-        url = url + endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -923,13 +933,16 @@ export default class tinkoff extends Exchange {
             return undefined; // default error handler
         }
         // {
-        //     "code": 40110000,
-        //     "message": "request is not authorized"
+        //     "code": 16,
+        //     "message": "authentication token is missing or invalid",
+        //     "description": "40003"
         // }
         const feedback = this.id + ' ' + body;
         const errorCode = this.safeString(response, 'code');
+        const detailedErrorCode = this.safeString(response, 'description');
         if (code !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], detailedErrorCode, feedback);
         }
         const message = this.safeValue(response, 'message', undefined);
         if (message !== undefined) {

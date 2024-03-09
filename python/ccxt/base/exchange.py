@@ -549,7 +549,6 @@ class Exchange(object):
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-
         # ##### PROXY & HEADERS #####
         request_headers = self.prepare_request_headers(headers)
         # proxy-url

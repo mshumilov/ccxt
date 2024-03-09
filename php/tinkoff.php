@@ -121,14 +121,19 @@ class tinkoff extends Exchange {
                 ),
             ),
             'timeframes' => array(
-                '1m' => '1min',
-                '5m' => '5min',
-                '30m' => '30min',
-                '1h' => '1H',
-                '4h' => '4H',
-                '1d' => '1D',
-                '1w' => '1W',
-                '1M' => '1M',
+                '1m' => 'CANDLE_INTERVAL_1_MIN',
+                '2m' => 'CANDLE_INTERVAL_2_MIN',
+                '3m' => 'CANDLE_INTERVAL_3_MIN',
+                '5m' => 'CANDLE_INTERVAL_5_MIN',
+                '10m' => 'CANDLE_INTERVAL_10_MIN',
+                '15m' => 'CANDLE_INTERVAL_15_MIN',
+                '30m' => 'CANDLE_INTERVAL_15_MIN',
+                '1h' => 'CANDLE_INTERVAL_HOUR',
+                '2h' => 'CANDLE_INTERVAL_2_HOUR',
+                '4h' => 'CANDLE_INTERVAL_4_HOUR',
+                '1d' => 'CANDLE_INTERVAL_DAY',
+                '1w' => 'CANDLE_INTERVAL_WEEK',
+                '1M' => 'CANDLE_INTERVAL_MONTH',
             ),
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
@@ -139,6 +144,7 @@ class tinkoff extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '3' => 'Could not fetch historical candles due to ExchangeNotAvailable',
                     '40003' => '\\ccxt\\PermissionDenied',
                     '80002' => '\\ccxt\\RateLimitExceeded',
                 ),
@@ -148,59 +154,68 @@ class tinkoff extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for tinkoff
-         * @see https://docs.alpaca.markets/reference/get-v2-$assets
+         * retrieves data on all $markets for tinkoff
+         * @see https://docs.alpaca.markets/reference/get-v2-assets
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
         $request = array(
-            'asset_class' => 'crypto',
-            'status' => 'active',
+            'instrumentStatus' => 'INSTRUMENT_STATUS_BASE',
         );
-        $assets = $this->instrumentsPostEtfs (array_merge($request, $params));
-        var_dump ($assets);
-        return $this->parse_markets($assets);
+        $etfs = $this->instrumentsPostEtfs (array_merge($request, $params));
+        $markets = $this->parse_markets($etfs['instruments']);
+        return $markets;
     }
 
     public function parse_market($asset): array {
         //
-        //     {
-        //         "id" => "c150e086-1e75-44e6-9c2c-093bb1e93139",
-        //         "class" => "crypto",
-        //         "exchange" => "CRYPTO",
-        //         "symbol" => "BTC/USDT",
-        //         "name" => "Bitcoin / USD Tether",
-        //         "status" => "active",
-        //         "tradable" => true,
-        //         "marginable" => false,
-        //         "maintenance_margin_requirement" => 100,
-        //         "shortable" => false,
-        //         "easy_to_borrow" => false,
-        //         "fractionable" => true,
-        //         "attributes" => array(),
-        //         "min_order_size" => "0.000026873",
-        //         "min_trade_increment" => "0.000000001",
-        //         "price_increment" => "1"
-        //     }
+        // {
+        //     'figi' => 'BBG00KLHY7D7',
+        //     'ticker' => 'DRIV',
+        //     'classCode' => 'SPBXM',
+        //     'isin' => 'US37954Y6243',
+        //     'lot' => '1',
+        //     'currency' => 'usd',
+        //     'shortEnabledFlag' => False,
+        //     'name' => 'Global X Autonomous & Electric Vehicles ETF',
+        //     'exchange' => 'spb_close',
+        //     'focusType' => 'equity',
+        //     'countryOfRisk' => 'US',
+        //     'countryOfRiskName' => 'Соединенные Штаты Америки',
+        //     'sector' => '',
+        //     'rebalancingFreq' => '',
+        //     'tradingStatus' => 'SECURITY_TRADING_STATUS_NOT_AVAILABLE_FOR_TRADING',
+        //     'otcFlag' => False,
+        //     'buyAvailableFlag' => True,
+        //     'sellAvailableFlag' => True,
+        //     'minPriceIncrement' => array('units' => '0', 'nano' => '10000000'),
+        //     'apiTradeAvailableFlag' => True,
+        //     'uid' => '1e15b3a8-9a46-44af-8cf1-59893d0c478f',
+        //     'positionUid' => 'c76c4b4c-74b2-41d5-902a-da8a1848c5a5',
+        //     'assetUid' => 'f9f2e0e0-3f73-4ecd-a3bb-363e29058ed6',
+        //     'forIisFlag' => False,
+        //     'forQualInvestorFlag' => True,
+        //     'weekendFlag' => False,
+        //     'blockedTcaFlag' => False,
+        //     'liquidityFlag' => True,
+        //     'first1minCandleDate' => '2023-01-23T12:31:00Z',
+        //     'first1dayCandleDate' => '2023-01-23T07:00:00Z',
+        //     'brand' => array('logoName' => 'US37954Y6243.png', 'logoBaseColor' => '#FF4E00', 'textColor' => '#ffffff')
+        // }
         //
-        $marketId = $this->safe_string($asset, 'symbol');
-        $parts = explode('/', $marketId);
-        $assetClass = $this->safe_string($asset, 'class');
-        $baseId = $this->safe_string($parts, 0);
-        $quoteId = $this->safe_string($parts, 1);
+        $marketId = $this->safe_string($asset, 'uid');
+        $baseId = $this->safe_string($asset, 'ticker');
+        $quoteId = $this->safe_string($asset, 'currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        // Us equity markets do not include $quote in $symbol->
-        // We can safely coerce us_equity $quote to USD
-        if ($quote === null && $assetClass === 'us_equity') {
-            $quote = 'USD';
-        }
-        $symbol = $base . '/' . $quote;
-        $status = $this->safe_string($asset, 'status');
-        $active = ($status === 'active');
-        $minAmount = $this->safe_number($asset, 'min_order_size');
-        $amount = $this->safe_number($asset, 'min_trade_increment');
-        $price = $this->safe_number($asset, 'price_increment');
+        $symbol = $base;
+        $active = $this->safe_value($asset, 'forIisFlag');
+        $minAmount = $this->safe_number($asset, 'lot');
+        $amount = 1;
+        $increment = $this->safe_value($asset, 'minPriceIncrement');
+        $units = $this->safe_number($increment, 'units');
+        $nano = $this->safe_number($increment, 'nano');
+        $price = $units . $nano / 1000000000;
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -379,37 +394,39 @@ class tinkoff extends Exchange {
         return $this->parse_order_book($rawOrderbook, $market['symbol'], $timestamp, 'b', 'a', 'p', 's');
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = 0, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @see https://docs.alpaca.markets/reference/cryptobars
-         * @see https://docs.alpaca.markets/reference/cryptolatestbars
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the alpha api endpoint
-         * @param {string} [$params->loc] crypto location, default => us
-         * @param {string} [$params->method] method, default => marketPublicGetV1beta3CryptoLocBars
+         * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
+         * @param {int} [$limit] the maximum amount of candles $to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $loc = $this->safe_string($params, 'loc', 'us');
         $request = array(
-            'symbols' => $marketId,
-            'loc' => $loc,
+            'instrumentId' => $marketId,
         );
-        $params = $this->omit($params, array( 'loc', 'method' ));
-        if ($limit !== null) {
-            $request['limit'] = $limit;
+        // $request->instrumentId = '9654c2dd-6993-427e-80fa-04e80a1cf4da'
+        $duration = $this->parse_timeframe($timeframe);
+        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $defaultLimit = $this->safe_integer($options, 'limit', 500);
+        if ($limit === null) {
+            $limit = $defaultLimit;
+        } else {
+            $limit = min ($limit, $defaultLimit);
         }
-        if ($since !== null) {
-            $request['start'] = $this->yyyymmdd($since);
-        }
-        $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $to = $this->sum($since, $limit * $duration * 1000, 1);
+        $request['from'] = $this->ymdhms($since);
+        $request['to'] = $this->ymdhms($to);
+        $request['interval'] = $this->safe_string($this->timeframes, $timeframe, 'CANDLE_INTERVAL_UNSPECIFIED');
+        $this->log('request', $request);
         $response = $this->marketdataPostGetCandles (array_merge($request, $params));
+        $this->log('response', $response);
+        $this->log('response2', strlen($response));
+        $this->log('response3', $response->keys ());
         //
         //    {
         //        "bars":{
@@ -886,24 +903,17 @@ class tinkoff extends Exchange {
         ), $market);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'instruments', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$api[0]]);
+        $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
         $headers = ($headers !== null) ? $headers : array();
-        if ($api[1] === 'private') {
-            $headers['APCA-API-KEY-ID'] = $this->apiKey;
-            $headers['APCA-API-SECRET-KEY'] = $this->secret;
-        }
+        $this->check_required_credentials();
+        $headers['Authorization'] = 'Bearer ' . $this->apiKey;
         $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
-            if (($method === 'GET') || ($method === 'DELETE')) {
-                $endpoint .= '?' . $this->urlencode($query);
-            } else {
-                $body = $this->json($query);
-                $headers['Content-Type'] = 'application/json';
-            }
+            $body = $this->json($query);
+            $headers['Content-Type'] = 'application/json';
         }
-        $url = $url . $endpoint;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
@@ -912,13 +922,16 @@ class tinkoff extends Exchange {
             return null; // default error handler
         }
         // {
-        //     "code" => 40110000,
-        //     "message" => "request is not authorized"
+        //     "code" => 16,
+        //     "message" => "authentication token is missing or invalid",
+        //     "description" => "40003"
         // }
         $feedback = $this->id . ' ' . $body;
         $errorCode = $this->safe_string($response, 'code');
+        $detailedErrorCode = $this->safe_string($response, 'description');
         if ($code !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $detailedErrorCode, $feedback);
         }
         $message = $this->safe_value($response, 'message', null);
         if ($message !== null) {

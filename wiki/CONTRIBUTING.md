@@ -1,1 +1,1 @@
-../CONTRIBUTING.md
+/home/ms/disk/dev/ccxt/CONTRIBUTING.md

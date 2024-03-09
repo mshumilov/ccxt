@@ -2745,7 +2745,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [poloniexfutures](/exchanges/poloniexfutures.md#poloniexfuturesfetchohlcv)
 * [probit](/exchanges/probit.md#probitfetchohlcv)
 * [timex](/exchanges/timex.md#timexfetchohlcv)
-* [alpaca](/exchanges/alpaca.md#alpacafetchohlcv)
+* [tinkoff](/exchanges/tinkoff.md#tinkofffetchohlcv)
 * [tokocrypto](/exchanges/tokocrypto.md#tokocryptofetchohlcv)
 * [upbit](/exchanges/upbit.md#upbitfetchohlcv)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchohlcv)
