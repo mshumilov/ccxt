@@ -59,7 +59,8 @@ class tinkoff extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
-                'fetchBalance' => false,
+                'fetchAccounts' => true,
+                'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
@@ -70,8 +71,6 @@ class tinkoff extends Exchange {
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRates' => false,
-                'fetchL1OrderBook' => true,
-                'fetchL2OrderBook' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
@@ -111,12 +110,25 @@ class tinkoff extends Exchange {
                         'GetCandles',
                     ),
                 ),
+                'operations' => array(
+                    'post' => array(
+                        'GetOperations',
+                        'GetPortfolio',
+                        'GetPositions',
+                        'GetWithdrawLimits',
+                    ),
+                ),
                 'orders' => array(
                     'post' => array(
                         'PostOrder',
                         'CancelOrder',
                         'GetOrderState',
                         'GetOrders',
+                    ),
+                ),
+                'users' => array(
+                    'post' => array(
+                        'GetAccounts',
                     ),
                 ),
             ),
@@ -141,21 +153,70 @@ class tinkoff extends Exchange {
                 'secret' => false,
             ),
             'options' => array(
+                'fetchOHLCV' => array(
+                    'limit' => 200,
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
-                    '3' => 'Could not fetch historical candles due to ExchangeNotAvailable',
+                    '404' => '\\ccxt\\ExchangeError',
                     '40003' => '\\ccxt\\PermissionDenied',
                     '80002' => '\\ccxt\\RateLimitExceeded',
+                    '30014' => '\\ccxt\\BadRequest',
                 ),
             ),
         ));
     }
 
+    public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the accounts associated with a profile
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+         */
+        $this->load_markets();
+        $response = $this->usersPostGetAccounts ($params);
+        //
+        //   {
+        //     "accounts" => array(
+        //       {
+        //         "id" => "50f2e57e-3941-4555-9d14-056c39275c14",
+        //         "type" => "ACCOUNT_TYPE_TINKOFF",
+        //         "name" => "",
+        //         "status" => "ACCOUNT_STATUS_OPEN",
+        //         "openedDate" => "2024-03-13T14:55:11.555046Z",
+        //         "accessLevel" => "ACCOUNT_ACCESS_LEVEL_FULL_ACCESS"
+        //       }
+        //     )
+        //   }
+        //
+        $result = $this->safe_value($response, 'accounts', array());
+        return $this->parse_accounts($this->filter_by($result, 'status', 'ACCOUNT_STATUS_OPEN'));
+    }
+
+    public function parse_account($account) {
+        //
+        //      {
+        //         "id" => "50f2e57e-3941-4555-9d14-056c39275c14",
+        //         "type" => "ACCOUNT_TYPE_TINKOFF",
+        //         "name" => "",
+        //         "status" => "ACCOUNT_STATUS_OPEN",
+        //         "openedDate" => "2024-03-13T14:55:11.555046Z",
+        //         "accessLevel" => "ACCOUNT_ACCESS_LEVEL_FULL_ACCESS"
+        //      }
+        //
+        return array(
+            'info' => $account,
+            'id' => $this->safe_string($account, 'id'),
+            'name' => $this->safe_string($account, 'name'),
+            'type' => 'main',
+            'code' => 'RUB',
+        );
+    }
+
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for tinkoff
-         * @see https://docs.alpaca.markets/reference/get-v2-assets
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -213,9 +274,7 @@ class tinkoff extends Exchange {
         $minAmount = $this->safe_number($asset, 'lot');
         $amount = 1;
         $increment = $this->safe_value($asset, 'minPriceIncrement');
-        $units = $this->safe_number($increment, 'units');
-        $nano = $this->safe_number($increment, 'nano');
-        $price = $units . $nano / 1000000000;
+        $price = $this->unit_to_number($increment);
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -270,8 +329,6 @@ class tinkoff extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
-         * @see https://docs.alpaca.markets/reference/cryptotrades
-         * @see https://docs.alpaca.markets/reference/cryptolatesttrades
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -290,7 +347,7 @@ class tinkoff extends Exchange {
         );
         $params = $this->omit($params, array( 'loc', 'method' ));
         if ($since !== null) {
-            $request['start'] = $this->iso8601($since);
+            $request['from'] = $this->iso8601($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -335,7 +392,6 @@ class tinkoff extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -345,10 +401,9 @@ class tinkoff extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $id = $market['id'];
-        $loc = $this->safe_string($params, 'loc', 'us');
         $request = array(
-            'symbols' => $id,
-            'loc' => $loc,
+            'depth' => $limit,
+            'instrumentId' => $id,
         );
         $response = $this->marketdataPostGetOrderBook (array_merge($request, $params));
         //
@@ -403,13 +458,13 @@ class tinkoff extends Exchange {
          * @param {int} [$limit] the maximum amount of candles $to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
+        $this->log('fetchOHLCV', $symbol, $timeframe, $since, $limit, $params);
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
         $request = array(
             'instrumentId' => $marketId,
         );
-        // $request->instrumentId = '9654c2dd-6993-427e-80fa-04e80a1cf4da'
         $duration = $this->parse_timeframe($timeframe);
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $defaultLimit = $this->safe_integer($options, 'limit', 500);
@@ -418,96 +473,82 @@ class tinkoff extends Exchange {
         } else {
             $limit = min ($limit, $defaultLimit);
         }
-        $to = $this->sum($since, $limit * $duration * 1000, 1);
-        $request['from'] = $this->ymdhms($since);
-        $request['to'] = $this->ymdhms($to);
-        $request['interval'] = $this->safe_string($this->timeframes, $timeframe, 'CANDLE_INTERVAL_UNSPECIFIED');
-        $this->log('request', $request);
-        $response = $this->marketdataPostGetCandles (array_merge($request, $params));
-        $this->log('response', $response);
-        $this->log('response2', strlen($response));
-        $this->log('response3', $response->keys ());
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":array(
-        //              array(
-        //                 "c":22887,
-        //                 "h":22888,
-        //                 "l":22873,
-        //                 "n":11,
-        //                 "o":22883,
-        //                 "t":"2022-07-21T05:00:00Z",
-        //                 "v":1.1138,
-        //                 "vw":22883.0155324116
-        //              ),
-        //              array(
-        //                 "c":22895,
-        //                 "h":22895,
-        //                 "l":22884,
-        //                 "n":6,
-        //                 "o":22884,
-        //                 "t":"2022-07-21T05:01:00Z",
-        //                 "v":0.001,
-        //                 "vw":22889.5
-        //              }
-        //           )
-        //        ),
-        //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-        //     }
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":{
-        //              "c":22887,
-        //              "h":22888,
-        //              "l":22873,
-        //              "n":11,
-        //              "o":22883,
-        //              "t":"2022-07-21T05:00:00Z",
-        //              "v":1.1138,
-        //              "vw":22883.0155324116
-        //           }
-        //        }
-        //     }
-        //
-        $bars = $this->safe_value($response, 'bars', array());
-        $ohlcvs = $this->safe_value($bars, $marketId, array());
-        if (gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs))) {
-            $ohlcvs = array( $ohlcvs );
+        $fromMs = $since;
+        if ($since === null) {
+            $fromMs = $this->milliseconds() - $limit * $duration * 1000;
         }
+        $maxPrepeats = 10;
+        $i = 0;
+        $ohlcvs = array();
+        while (strlen($ohlcvs) < $limit && $i < $maxPrepeats) {
+            $to = $this->sum($fromMs, $limit * $duration * 1000, 1);
+            $request['from'] = $this->ymdhms($fromMs, 'T') . '.000Z';
+            $request['to'] = $this->ymdhms($to, 'T') . '.000Z';
+            $request['interval'] = $this->safe_string($this->timeframes, $timeframe, 'CANDLE_INTERVAL_UNSPECIFIED');
+            $response = $this->marketdataPostGetCandles (array_merge($request, $params));
+            //
+            // { 'candles':
+            //   array(
+            //     {
+            //       'open' => array('units' => '6', 'nano' => '530000000'),
+            //       'high' => array('units' => '6', 'nano' => '560000000'),
+            //       'low' => array('units' => '6', 'nano' => '510000000'),
+            //       'close' => array('units' => '6', 'nano' => '500000000'),
+            //       'volume' => '427915',
+            //       'time' => '2024-02-27T06:59:00Z',
+            //       'isComplete' => True,
+            //       'candleSource' => 'CANDLE_SOURCE_EXCHANGE'
+            //     }
+            //   )
+            // }
+            //
+            $newCandles = $this->safe_value($response, 'candles', array());
+            if (gettype($newCandles) !== 'array' || array_keys($newCandles) !== array_keys(array_keys($newCandles))) {
+                throw new ExchangeError('No candles');
+            }
+            $ohlcvs = $this->array_concat($ohlcvs, $newCandles);
+            $i += 1;
+            $fromMs = $this->sum($fromMs, -$limit * $duration * 1000);
+        }
+        $ohlcvs = $this->sort_by($ohlcvs, 'time');
+        $ohlcvs = $this->array_slice($ohlcvs, strlen($ohlcvs) - $limit, strlen($ohlcvs));
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
-        //     {
-        //        "c":22895,
-        //        "h":22895,
-        //        "l":22884,
-        //        "n":6,
-        //        "o":22884,
-        //        "t":"2022-07-21T05:01:00Z",
-        //        "v":0.001,
-        //        "vw":22889.5
-        //     }
+        //  {
+        //     'open' => array('units' => '6', 'nano' => '530000000'),
+        //     'high' => array('units' => '6', 'nano' => '560000000'),
+        //     'low' => array('units' => '6', 'nano' => '510000000'),
+        //     'close' => array('units' => '6', 'nano' => '500000000'),
+        //     'volume' => '427915',
+        //     'time' => '2024-02-27T06:59:00Z',
+        //     'isComplete' => True,
+        //     'candleSource' => 'CANDLE_SOURCE_EXCHANGE'
+        //  }
         //
-        $datetime = $this->safe_string($ohlcv, 't');
+        $datetime = $this->safe_string($ohlcv, 'time');
         $timestamp = $this->parse8601($datetime);
-        return array(
-            $timestamp, // $timestamp
-            $this->safe_number($ohlcv, 'o'), // open
-            $this->safe_number($ohlcv, 'h'), // high
-            $this->safe_number($ohlcv, 'l'), // low
-            $this->safe_number($ohlcv, 'c'), // close
-            $this->safe_number($ohlcv, 'v'), // volume
-        );
+        return [
+            $timestamp,
+            $this->unit_to_number($ohlcv['open']),
+            $this->unit_to_number($ohlcv['high']),
+            $this->unit_to_number($ohlcv['low']),
+            $this->unit_to_number($ohlcv['close']),
+            $this->safe_integer($ohlcv, 'volume'),
+        ];
+    }
+
+    public function unit_to_number($unit = array ()): float {
+        $units = $this->safe_integer($unit, 'units');
+        $nano = $this->safe_integer($unit, 'nano');
+        return $units . $nano / 1000000000;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
-         * @see https://docs.alpaca.markets/reference/postorder
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market', 'limit' or 'stop_limit'
          * @param {string} $side 'buy' or 'sell'
@@ -594,7 +635,6 @@ class tinkoff extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -616,7 +656,6 @@ class tinkoff extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders in a market
-         * @see https://docs.alpaca.markets/reference/deleteallorders
          * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -633,7 +672,6 @@ class tinkoff extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
-         * @see https://docs.alpaca.markets/reference/getorderbyorderid
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -651,7 +689,6 @@ class tinkoff extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
-         * @see https://docs.alpaca.markets/reference/getallorders
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -726,7 +763,6 @@ class tinkoff extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
-         * @see https://docs.alpaca.markets/reference/getallorders
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -743,7 +779,6 @@ class tinkoff extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
-         * @see https://docs.alpaca.markets/reference/getallorders
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -856,6 +891,84 @@ class tinkoff extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_balance($response): array {
+        //
+        //   {
+        //     "blockedGuarantee" => array(
+        //       {
+        //         "nano" => 5,
+        //         "currency" => "currency",
+        //         "units" => "units"
+        //       }
+        //     ),
+        //     "money" => array(
+        //       {
+        //         "nano" => 5,
+        //         "currency" => "currency",
+        //         "units" => "units"
+        //       }
+        //     ),
+        //     "blocked" => array(
+        //       {
+        //         "nano" => 5,
+        //         "currency" => "currency",
+        //         "units" => "units"
+        //       }
+        //     )
+        //   }
+        //
+        $result = array( 'info' => $response );
+        $money = $this->safe_value($response, 'money', array());
+        $blocked = $this->safe_value($response, 'blocked', array());
+        $blocked_guarantee = $this->safe_value($response, 'blockedGuarantee', array());
+        for ($i = 0; $i < count($money); $i++) {
+            $balance = $money[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $amount = $this->unit_to_number($balance);
+            $result[$code] = array(
+                'free' => $amount,
+                'total' => $amount,
+            );
+        }
+        for ($i = 0; $i < count($blocked); $i++) {
+            $balance = $blocked[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->safe_value($result, $code, array());
+            $amount = $this->unit_to_number($balance);
+            $account['used'] = $amount;
+            $total = $this->safe_number($account, 'total', 0);
+            $account['total'] = $total . $amount;
+        }
+        for ($i = 0; $i < count($blocked_guarantee); $i++) {
+            $balance = $blocked_guarantee[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->safe_value($result, $code, array());
+            $amount = $this->unit_to_number($balance);
+            $account['used'] = $amount;
+            $total = $this->safe_number($account, 'total', 0);
+            $account['total'] = $total . $amount;
+        }
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()): array {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         */
+        $accounts = $this->load_accounts();
+        if (strlen($accounts) === 0) {
+            throw new ExchangeError('No $accounts found');
+        }
+        $params['account_id'] = $accounts[0]['id'];
+        $response = $this->operationsPostGetWithdrawLimits ($params);
+        return $this->parse_balance($response);
+    }
+
     public function parse_time_in_force($timeInForce) {
         $timeInForces = array(
             'day' => 'Day',
@@ -903,17 +1016,15 @@ class tinkoff extends Exchange {
         ), $market);
     }
 
-    public function sign($path, $api = 'instruments', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'instruments', $method = 'POST', $params = array (), $headers = null, $body = null) {
+        $this->check_required_credentials();
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
         $headers = ($headers !== null) ? $headers : array();
-        $this->check_required_credentials();
         $headers['Authorization'] = 'Bearer ' . $this->apiKey;
+        $headers['Content-Type'] = 'application/json';
         $query = $this->omit($params, $this->extract_params($path));
-        if ($query) {
-            $body = $this->json($query);
-            $headers['Content-Type'] = 'application/json';
-        }
+        $body = $this->json($query);
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
@@ -926,15 +1037,19 @@ class tinkoff extends Exchange {
         //     "message" => "authentication token is missing or invalid",
         //     "description" => "40003"
         // }
-        $feedback = $this->id . ' ' . $body;
-        $errorCode = $this->safe_string($response, 'code');
-        $detailedErrorCode = $this->safe_string($response, 'description');
         if ($code !== null) {
+            if ($code >= 400) {
+                $this->log('ERROR:', $body);
+            }
+            $feedback = $this->id . ' ' . $body;
+            $errorCode = $this->safe_string($response, 'code');
+            $detailedErrorCode = $this->safe_string($response, 'description');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $detailedErrorCode, $feedback);
         }
         $message = $this->safe_value($response, 'message', null);
         if ($message !== null) {
+            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);

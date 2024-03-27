@@ -1005,6 +1005,7 @@ fetch all the accounts associated with a profile
 * [ndax](/exchanges/ndax.md#ndaxfetchaccounts)
 * [novadax](/exchanges/novadax.md#novadaxfetchaccounts)
 * [okx](/exchanges/okx.md#okxfetchaccounts)
+* [tinkoff](/exchanges/tinkoff.md#tinkofffetchaccounts)
 * [woo](/exchanges/woo.md#woofetchaccounts)
 
 ---
@@ -1101,6 +1102,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [poloniexfutures](/exchanges/poloniexfutures.md#poloniexfuturesfetchbalance)
 * [probit](/exchanges/probit.md#probitfetchbalance)
 * [timex](/exchanges/timex.md#timexfetchbalance)
+* [tinkoff](/exchanges/tinkoff.md#tinkofffetchbalance)
 * [tokocrypto](/exchanges/tokocrypto.md#tokocryptofetchbalance)
 * [upbit](/exchanges/upbit.md#upbitfetchbalance)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchbalance)
@@ -3200,7 +3202,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [poloniexfuturesfutures](/exchanges/poloniexfuturesfutures.md#poloniexfuturesfuturesfetchorderbook)
 * [probit](/exchanges/probit.md#probitfetchorderbook)
 * [timex](/exchanges/timex.md#timexfetchorderbook)
-* [alpaca](/exchanges/alpaca.md#alpacafetchorderbook)
+* [tinkoff](/exchanges/tinkoff.md#tinkofffetchorderbook)
 * [tokocrypto](/exchanges/tokocrypto.md#tokocryptofetchorderbook)
 * [upbit](/exchanges/upbit.md#upbitfetchorderbook)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchorderbook)

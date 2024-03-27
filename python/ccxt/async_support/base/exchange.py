@@ -133,7 +133,6 @@ class Exchange(BaseExchange):
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-
         # ##### PROXY & HEADERS #####
         request_headers = self.prepare_request_headers(headers)
         self.last_request_headers = request_headers
@@ -171,14 +170,12 @@ class Exchange(BaseExchange):
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
-
         proxyAgentSet = final_proxy is not None or socksProxy is not None
         self.checkConflictingProxies(proxyAgentSet, proxyUrl)
 
         # avoid old proxies mixing
         if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
-
         # log
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)

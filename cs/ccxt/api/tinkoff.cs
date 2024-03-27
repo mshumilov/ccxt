@@ -31,6 +31,26 @@ public partial class tinkoff : Exchange
         return await this.callAsync ("marketdataPostGetCandles",parameters);
     }
 
+    public async Task<object> operationsPostGetOperations (object parameters = null)
+    {
+        return await this.callAsync ("operationsPostGetOperations",parameters);
+    }
+
+    public async Task<object> operationsPostGetPortfolio (object parameters = null)
+    {
+        return await this.callAsync ("operationsPostGetPortfolio",parameters);
+    }
+
+    public async Task<object> operationsPostGetPositions (object parameters = null)
+    {
+        return await this.callAsync ("operationsPostGetPositions",parameters);
+    }
+
+    public async Task<object> operationsPostGetWithdrawLimits (object parameters = null)
+    {
+        return await this.callAsync ("operationsPostGetWithdrawLimits",parameters);
+    }
+
     public async Task<object> ordersPostPostOrder (object parameters = null)
     {
         return await this.callAsync ("ordersPostPostOrder",parameters);
@@ -49,6 +69,11 @@ public partial class tinkoff : Exchange
     public async Task<object> ordersPostGetOrders (object parameters = null)
     {
         return await this.callAsync ("ordersPostGetOrders",parameters);
+    }
+
+    public async Task<object> usersPostGetAccounts (object parameters = null)
+    {
+        return await this.callAsync ("usersPostGetAccounts",parameters);
     }
 
 }

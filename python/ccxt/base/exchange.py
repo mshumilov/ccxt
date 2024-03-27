@@ -1685,6 +1685,10 @@ class Exchange(object):
     def arraySlice(self, array, first, second=None):
         return array[first:second] if second else array[first:]
 
+    @staticmethod
+    def array_slice(array, first, second=None):
+        return array[first:second] if second else array[first:]
+
     def get_property(self, obj, property, defaultValue=None):
         return getattr(obj, property) if hasattr(obj, property) else defaultValue
 

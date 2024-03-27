@@ -3327,6 +3327,7 @@ class Exchange {
     }
     parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         const results = [];
+        this.log('fetchOHLCV4', ohlcvs.length);
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push(this.parseOHLCV(ohlcvs[i], market));
         }

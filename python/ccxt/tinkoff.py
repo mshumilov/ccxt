@@ -5,10 +5,11 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.tinkoff import ImplicitAPI
-from ccxt.base.types import Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -65,7 +66,8 @@ class tinkoff(Exchange, ImplicitAPI):
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createOrder': True,
-                'fetchBalance': False,
+                'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
@@ -76,8 +78,6 @@ class tinkoff(Exchange, ImplicitAPI):
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRates': False,
-                'fetchL1OrderBook': True,
-                'fetchL2OrderBook': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
@@ -117,12 +117,25 @@ class tinkoff(Exchange, ImplicitAPI):
                         'GetCandles',
                     ],
                 },
+                'operations': {
+                    'post': [
+                        'GetOperations',
+                        'GetPortfolio',
+                        'GetPositions',
+                        'GetWithdrawLimits',
+                    ],
+                },
                 'orders': {
                     'post': [
                         'PostOrder',
                         'CancelOrder',
                         'GetOrderState',
                         'GetOrders',
+                    ],
+                },
+                'users': {
+                    'post': [
+                        'GetAccounts',
                     ],
                 },
             },
@@ -147,20 +160,67 @@ class tinkoff(Exchange, ImplicitAPI):
                 'secret': False,
             },
             'options': {
+                'fetchOHLCV': {
+                    'limit': 200,
+                },
             },
             'exceptions': {
                 'exact': {
-                    '3': 'Could not fetch historical candles due to ExchangeNotAvailable',
+                    '404': ExchangeError,
                     '40003': PermissionDenied,
                     '80002': RateLimitExceeded,
+                    '30014': BadRequest,
                 },
             },
         })
 
+    def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        """
+        self.load_markets()
+        response = self.usersPostGetAccounts(params)
+        #
+        #   {
+        #     "accounts": [
+        #       {
+        #         "id": "50f2e57e-3941-4555-9d14-056c39275c14",
+        #         "type": "ACCOUNT_TYPE_TINKOFF",
+        #         "name": "",
+        #         "status": "ACCOUNT_STATUS_OPEN",
+        #         "openedDate": "2024-03-13T14:55:11.555046Z",
+        #         "accessLevel": "ACCOUNT_ACCESS_LEVEL_FULL_ACCESS"
+        #       }
+        #     ]
+        #   }
+        #
+        result = self.safe_value(response, 'accounts', [])
+        return self.parse_accounts(self.filter_by(result, 'status', 'ACCOUNT_STATUS_OPEN'))
+
+    def parse_account(self, account):
+        #
+        #      {
+        #         "id": "50f2e57e-3941-4555-9d14-056c39275c14",
+        #         "type": "ACCOUNT_TYPE_TINKOFF",
+        #         "name": "",
+        #         "status": "ACCOUNT_STATUS_OPEN",
+        #         "openedDate": "2024-03-13T14:55:11.555046Z",
+        #         "accessLevel": "ACCOUNT_ACCESS_LEVEL_FULL_ACCESS"
+        #      }
+        #
+        return {
+            'info': account,
+            'id': self.safe_string(account, 'id'),
+            'name': self.safe_string(account, 'name'),
+            'type': 'main',
+            'code': 'RUB',
+        }
+
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for tinkoff
-        :see: https://docs.alpaca.markets/reference/get-v2-assets
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -217,9 +277,7 @@ class tinkoff(Exchange, ImplicitAPI):
         minAmount = self.safe_number(asset, 'lot')
         amount = 1
         increment = self.safe_value(asset, 'minPriceIncrement')
-        units = self.safe_number(increment, 'units')
-        nano = self.safe_number(increment, 'nano')
-        price = units + nano / 1000000000
+        price = self.unit_to_number(increment)
         return {
             'id': marketId,
             'symbol': symbol,
@@ -273,8 +331,6 @@ class tinkoff(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.alpaca.markets/reference/cryptotrades
-        :see: https://docs.alpaca.markets/reference/cryptolatesttrades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -293,7 +349,7 @@ class tinkoff(Exchange, ImplicitAPI):
         }
         params = self.omit(params, ['loc', 'method'])
         if since is not None:
-            request['start'] = self.iso8601(since)
+            request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
         response = self.marketdataPostGetLastTrades(self.extend(request, params))
@@ -334,7 +390,6 @@ class tinkoff(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.alpaca.markets/reference/cryptolatestorderbooks
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -344,10 +399,9 @@ class tinkoff(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        loc = self.safe_string(params, 'loc', 'us')
         request = {
-            'symbols': id,
-            'loc': loc,
+            'depth': limit,
+            'instrumentId': id,
         }
         response = self.marketdataPostGetOrderBook(self.extend(request, params))
         #
@@ -401,13 +455,13 @@ class tinkoff(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
+        self.log('fetchOHLCV', symbol, timeframe, since, limit, params)
         self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
         request = {
             'instrumentId': marketId,
         }
-        # request.instrumentId = '9654c2dd-6993-427e-80fa-04e80a1cf4da'
         duration = self.parse_timeframe(timeframe)
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         defaultLimit = self.safe_integer(options, 'limit', 500)
@@ -415,93 +469,76 @@ class tinkoff(Exchange, ImplicitAPI):
             limit = defaultLimit
         else:
             limit = min(limit, defaultLimit)
-        to = self.sum(since, limit * duration * 1000, 1)
-        request['from'] = self.ymdhms(since)
-        request['to'] = self.ymdhms(to)
-        request['interval'] = self.safe_string(self.timeframes, timeframe, 'CANDLE_INTERVAL_UNSPECIFIED')
-        self.log('request', request)
-        response = self.marketdataPostGetCandles(self.extend(request, params))
-        self.log('response', response)
-        self.log('response2', len(response))
-        self.log('response3', response.keys())
-        #
-        #    {
-        #        "bars":{
-        #           "BTC/USD":[
-        #              {
-        #                 "c":22887,
-        #                 "h":22888,
-        #                 "l":22873,
-        #                 "n":11,
-        #                 "o":22883,
-        #                 "t":"2022-07-21T05:00:00Z",
-        #                 "v":1.1138,
-        #                 "vw":22883.0155324116
-        #              },
-        #              {
-        #                 "c":22895,
-        #                 "h":22895,
-        #                 "l":22884,
-        #                 "n":6,
-        #                 "o":22884,
-        #                 "t":"2022-07-21T05:01:00Z",
-        #                 "v":0.001,
-        #                 "vw":22889.5
-        #              }
-        #           ]
-        #        },
-        #        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-        #     }
-        #
-        #    {
-        #        "bars":{
-        #           "BTC/USD":{
-        #              "c":22887,
-        #              "h":22888,
-        #              "l":22873,
-        #              "n":11,
-        #              "o":22883,
-        #              "t":"2022-07-21T05:00:00Z",
-        #              "v":1.1138,
-        #              "vw":22883.0155324116
-        #           }
-        #        }
-        #     }
-        #
-        bars = self.safe_value(response, 'bars', {})
-        ohlcvs = self.safe_value(bars, marketId, {})
-        if not isinstance(ohlcvs, list):
-            ohlcvs = [ohlcvs]
+        fromMs = since
+        if since is None:
+            fromMs = self.milliseconds() - limit * duration * 1000
+        maxPrepeats = 10
+        i = 0
+        ohlcvs = []
+        while(len(ohlcvs) < limit and i < maxPrepeats):
+            to = self.sum(fromMs, limit * duration * 1000, 1)
+            request['from'] = self.ymdhms(fromMs, 'T') + '.000Z'
+            request['to'] = self.ymdhms(to, 'T') + '.000Z'
+            request['interval'] = self.safe_string(self.timeframes, timeframe, 'CANDLE_INTERVAL_UNSPECIFIED')
+            response = self.marketdataPostGetCandles(self.extend(request, params))
+            #
+            # {'candles':
+            #   [
+            #     {
+            #       'open': {'units': '6', 'nano': '530000000'},
+            #       'high': {'units': '6', 'nano': '560000000'},
+            #       'low': {'units': '6', 'nano': '510000000'},
+            #       'close': {'units': '6', 'nano': '500000000'},
+            #       'volume': '427915',
+            #       'time': '2024-02-27T06:59:00Z',
+            #       'isComplete': True,
+            #       'candleSource': 'CANDLE_SOURCE_EXCHANGE'
+            #     }
+            #   ]
+            # }
+            #
+            newCandles = self.safe_value(response, 'candles', {})
+            if not isinstance(newCandles, list):
+                raise ExchangeError('No candles')
+            ohlcvs = self.array_concat(ohlcvs, newCandles)
+            i += 1
+            fromMs = self.sum(fromMs, -limit * duration * 1000)
+        ohlcvs = self.sort_by(ohlcvs, 'time')
+        ohlcvs = self.array_slice(ohlcvs, len(ohlcvs) - limit, len(ohlcvs))
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
-        #     {
-        #        "c":22895,
-        #        "h":22895,
-        #        "l":22884,
-        #        "n":6,
-        #        "o":22884,
-        #        "t":"2022-07-21T05:01:00Z",
-        #        "v":0.001,
-        #        "vw":22889.5
-        #     }
+        #  {
+        #     'open': {'units': '6', 'nano': '530000000'},
+        #     'high': {'units': '6', 'nano': '560000000'},
+        #     'low': {'units': '6', 'nano': '510000000'},
+        #     'close': {'units': '6', 'nano': '500000000'},
+        #     'volume': '427915',
+        #     'time': '2024-02-27T06:59:00Z',
+        #     'isComplete': True,
+        #     'candleSource': 'CANDLE_SOURCE_EXCHANGE'
+        #  }
         #
-        datetime = self.safe_string(ohlcv, 't')
+        datetime = self.safe_string(ohlcv, 'time')
         timestamp = self.parse8601(datetime)
         return [
-            timestamp,  # timestamp
-            self.safe_number(ohlcv, 'o'),  # open
-            self.safe_number(ohlcv, 'h'),  # high
-            self.safe_number(ohlcv, 'l'),  # low
-            self.safe_number(ohlcv, 'c'),  # close
-            self.safe_number(ohlcv, 'v'),  # volume
+            timestamp,
+            self.unit_to_number(ohlcv['open']),
+            self.unit_to_number(ohlcv['high']),
+            self.unit_to_number(ohlcv['low']),
+            self.unit_to_number(ohlcv['close']),
+            self.safe_integer(ohlcv, 'volume'),
         ]
+
+    def unit_to_number(self, unit={}) -> float:
+        units = self.safe_integer(unit, 'units')
+        nano = self.safe_integer(unit, 'nano')
+        return units + nano / 1000000000
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         create a trade order
-        :see: https://docs.alpaca.markets/reference/postorder
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'stop_limit'
         :param str side: 'buy' or 'sell'
@@ -584,7 +621,6 @@ class tinkoff(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.alpaca.markets/reference/deleteorderbyorderid
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -605,7 +641,6 @@ class tinkoff(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://docs.alpaca.markets/reference/deleteallorders
         :param str symbol: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -620,7 +655,6 @@ class tinkoff(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.alpaca.markets/reference/getorderbyorderid
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -637,7 +671,6 @@ class tinkoff(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://docs.alpaca.markets/reference/getallorders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -707,7 +740,6 @@ class tinkoff(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.alpaca.markets/reference/getallorders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -723,7 +755,6 @@ class tinkoff(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://docs.alpaca.markets/reference/getallorders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -830,6 +861,78 @@ class tinkoff(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_balance(self, response) -> Balances:
+        #
+        #   {
+        #     "blockedGuarantee": [
+        #       {
+        #         "nano": 5,
+        #         "currency": "currency",
+        #         "units": "units"
+        #       }
+        #     ],
+        #     "money": [
+        #       {
+        #         "nano": 5,
+        #         "currency": "currency",
+        #         "units": "units"
+        #       }
+        #     ],
+        #     "blocked": [
+        #       {
+        #         "nano": 5,
+        #         "currency": "currency",
+        #         "units": "units"
+        #       }
+        #     ]
+        #   }
+        #
+        result = {'info': response}
+        money = self.safe_value(response, 'money', [])
+        blocked = self.safe_value(response, 'blocked', [])
+        blocked_guarantee = self.safe_value(response, 'blockedGuarantee', [])
+        for i in range(0, len(money)):
+            balance = money[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            amount = self.unit_to_number(balance)
+            result[code] = {
+                'free': amount,
+                'total': amount,
+            }
+        for i in range(0, len(blocked)):
+            balance = blocked[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.safe_value(result, code, {})
+            amount = self.unit_to_number(balance)
+            account['used'] = amount
+            total = self.safe_number(account, 'total', 0)
+            account['total'] = total + amount
+        for i in range(0, len(blocked_guarantee)):
+            balance = blocked_guarantee[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.safe_value(result, code, {})
+            amount = self.unit_to_number(balance)
+            account['used'] = amount
+            total = self.safe_number(account, 'total', 0)
+            account['total'] = total + amount
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        accounts = self.load_accounts()
+        if len(accounts) == 0:
+            raise ExchangeError('No accounts found')
+        params['account_id'] = accounts[0]['id']
+        response = self.operationsPostGetWithdrawLimits(params)
+        return self.parse_balance(response)
+
     def parse_time_in_force(self, timeInForce):
         timeInForces = {
             'day': 'Day',
@@ -875,16 +978,15 @@ class tinkoff(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def sign(self, path, api='instruments', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='instruments', method='POST', params={}, headers=None, body=None):
+        self.check_required_credentials()
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         headers = headers if (headers is not None) else {}
-        self.check_required_credentials()
         headers['Authorization'] = 'Bearer ' + self.apiKey
+        headers['Content-Type'] = 'application/json'
         query = self.omit(params, self.extract_params(path))
-        if query:
-            body = self.json(query)
-            headers['Content-Type'] = 'application/json'
+        body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -895,14 +997,17 @@ class tinkoff(Exchange, ImplicitAPI):
         #     "message": "authentication token is missing or invalid",
         #     "description": "40003"
         # }
-        feedback = self.id + ' ' + body
-        errorCode = self.safe_string(response, 'code')
-        detailedErrorCode = self.safe_string(response, 'description')
         if code is not None:
+            if code >= 400:
+                self.log('ERROR:', body)
+            feedback = self.id + ' ' + body
+            errorCode = self.safe_string(response, 'code')
+            detailedErrorCode = self.safe_string(response, 'description')
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], detailedErrorCode, feedback)
         message = self.safe_value(response, 'message', None)
         if message is not None:
+            feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)

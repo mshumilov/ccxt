@@ -6,7 +6,6 @@
 **Extends**: <code>Exchange</code>  
 
 * [fetchTrades](#fetchtrades)
-* [fetchOrderBook](#fetchorderbook)
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
@@ -22,11 +21,6 @@ get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
-
-**See**
-
-- https://docs.alpaca.markets/reference/cryptotrades
-- https://docs.alpaca.markets/reference/cryptolatesttrades
 
 
 | Param | Type | Required | Description |
@@ -44,29 +38,6 @@ alpaca.fetchTrades (symbol[, since, limit, params])
 ```
 
 
-<a name="fetchOrderBook" id="fetchorderbook"></a>
-
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
-
-**See**: https://docs.alpaca.markets/reference/cryptolatestorderbooks  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.loc | <code>string</code> | No | crypto location, default: us |
-
-
-```javascript
-alpaca.fetchOrderBook (symbol[, limit, params])
-```
-
-
 <a name="createOrder" id="createorder"></a>
 
 ### createOrder{docsify-ignore}
@@ -75,7 +46,6 @@ create a trade order
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.alpaca.markets/reference/postorder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -101,7 +71,6 @@ cancels an open order
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.alpaca.markets/reference/deleteorderbyorderid  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -123,7 +92,6 @@ cancel all open orders in a market
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.alpaca.markets/reference/deleteallorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -144,7 +112,6 @@ fetches information on an order made by the user
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.alpaca.markets/reference/getorderbyorderid  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -165,7 +132,6 @@ fetches information on multiple orders made by the user
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.alpaca.markets/reference/getallorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -189,7 +155,6 @@ fetch all unfilled currently open orders
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.alpaca.markets/reference/getallorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -213,7 +178,6 @@ fetches information on multiple closed orders made by the user
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
-**See**: https://docs.alpaca.markets/reference/getallorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

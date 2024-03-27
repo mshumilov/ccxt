@@ -2289,6 +2289,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
+        $this->log ('fetchOHLCV4', strlen($ohlcvs));
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
         }

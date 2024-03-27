@@ -60,7 +60,8 @@ class tinkoff extends tinkoff$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
-                'fetchBalance': false,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -71,8 +72,6 @@ class tinkoff extends tinkoff$1 {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
-                'fetchL1OrderBook': true,
-                'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
@@ -112,12 +111,25 @@ class tinkoff extends tinkoff$1 {
                         'GetCandles',
                     ],
                 },
+                'operations': {
+                    'post': [
+                        'GetOperations',
+                        'GetPortfolio',
+                        'GetPositions',
+                        'GetWithdrawLimits',
+                    ],
+                },
                 'orders': {
                     'post': [
                         'PostOrder',
                         'CancelOrder',
                         'GetOrderState',
                         'GetOrders',
+                    ],
+                },
+                'users': {
+                    'post': [
+                        'GetAccounts',
                     ],
                 },
             },
@@ -141,22 +153,72 @@ class tinkoff extends tinkoff$1 {
                 'apiKey': true,
                 'secret': false,
             },
-            'options': {},
+            'options': {
+                'fetchOHLCV': {
+                    'limit': 200,
+                },
+            },
             'exceptions': {
                 'exact': {
-                    '3': 'Could not fetch historical candles due to ExchangeNotAvailable',
+                    '404': errors.ExchangeError,
                     '40003': errors.PermissionDenied,
                     '80002': errors.RateLimitExceeded,
+                    '30014': errors.BadRequest,
                 },
             },
         });
+    }
+    async fetchAccounts(params = {}) {
+        /**
+         * @method
+         * @name tinkoff#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        await this.loadMarkets();
+        const response = await this.usersPostGetAccounts(params);
+        //
+        //   {
+        //     "accounts": [
+        //       {
+        //         "id": "50f2e57e-3941-4555-9d14-056c39275c14",
+        //         "type": "ACCOUNT_TYPE_TINKOFF",
+        //         "name": "",
+        //         "status": "ACCOUNT_STATUS_OPEN",
+        //         "openedDate": "2024-03-13T14:55:11.555046Z",
+        //         "accessLevel": "ACCOUNT_ACCESS_LEVEL_FULL_ACCESS"
+        //       }
+        //     ]
+        //   }
+        //
+        const result = this.safeValue(response, 'accounts', []);
+        return this.parseAccounts(this.filterBy(result, 'status', 'ACCOUNT_STATUS_OPEN'));
+    }
+    parseAccount(account) {
+        //
+        //      {
+        //         "id": "50f2e57e-3941-4555-9d14-056c39275c14",
+        //         "type": "ACCOUNT_TYPE_TINKOFF",
+        //         "name": "",
+        //         "status": "ACCOUNT_STATUS_OPEN",
+        //         "openedDate": "2024-03-13T14:55:11.555046Z",
+        //         "accessLevel": "ACCOUNT_ACCESS_LEVEL_FULL_ACCESS"
+        //      }
+        //
+        return {
+            'info': account,
+            'id': this.safeString(account, 'id'),
+            'name': this.safeString(account, 'name'),
+            'type': 'main',
+            'code': 'RUB',
+        };
     }
     async fetchMarkets(params = {}) {
         /**
          * @method
          * @name tinkoff#fetchMarkets
          * @description retrieves data on all markets for tinkoff
-         * @see https://docs.alpaca.markets/reference/get-v2-assets
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -213,9 +275,7 @@ class tinkoff extends tinkoff$1 {
         const minAmount = this.safeNumber(asset, 'lot');
         const amount = 1;
         const increment = this.safeValue(asset, 'minPriceIncrement');
-        const units = this.safeNumber(increment, 'units');
-        const nano = this.safeNumber(increment, 'nano');
-        const price = units + nano / 1000000000;
+        const price = this.unitToNumber(increment);
         return {
             'id': marketId,
             'symbol': symbol,
@@ -271,8 +331,6 @@ class tinkoff extends tinkoff$1 {
          * @method
          * @name alpaca#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.alpaca.markets/reference/cryptotrades
-         * @see https://docs.alpaca.markets/reference/cryptolatesttrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -291,7 +349,7 @@ class tinkoff extends tinkoff$1 {
         };
         params = this.omit(params, ['loc', 'method']);
         if (since !== undefined) {
-            request['start'] = this.iso8601(since);
+            request['from'] = this.iso8601(since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -335,9 +393,8 @@ class tinkoff extends tinkoff$1 {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name alpaca#fetchOrderBook
+         * @name tinkoff#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -347,10 +404,9 @@ class tinkoff extends tinkoff$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const id = market['id'];
-        const loc = this.safeString(params, 'loc', 'us');
         const request = {
-            'symbols': id,
-            'loc': loc,
+            'depth': limit,
+            'instrumentId': id,
         };
         const response = await this.marketdataPostGetOrderBook(this.extend(request, params));
         //
@@ -406,13 +462,13 @@ class tinkoff extends tinkoff$1 {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        this.log('fetchOHLCV', symbol, timeframe, since, limit, params);
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketId = market['id'];
         const request = {
             'instrumentId': marketId,
         };
-        // request.instrumentId = '9654c2dd-6993-427e-80fa-04e80a1cf4da'
         const duration = this.parseTimeframe(timeframe);
         const options = this.safeValue(this.options, 'fetchOHLCV', {});
         const defaultLimit = this.safeInteger(options, 'limit', 500);
@@ -422,96 +478,81 @@ class tinkoff extends tinkoff$1 {
         else {
             limit = Math.min(limit, defaultLimit);
         }
-        const to = this.sum(since, limit * duration * 1000, 1);
-        request['from'] = this.ymdhms(since);
-        request['to'] = this.ymdhms(to);
-        request['interval'] = this.safeString(this.timeframes, timeframe, 'CANDLE_INTERVAL_UNSPECIFIED');
-        this.log('request', request);
-        const response = await this.marketdataPostGetCandles(this.extend(request, params));
-        this.log('response', response);
-        this.log('response2', response.length);
-        this.log('response3', response.keys());
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":[
-        //              {
-        //                 "c":22887,
-        //                 "h":22888,
-        //                 "l":22873,
-        //                 "n":11,
-        //                 "o":22883,
-        //                 "t":"2022-07-21T05:00:00Z",
-        //                 "v":1.1138,
-        //                 "vw":22883.0155324116
-        //              },
-        //              {
-        //                 "c":22895,
-        //                 "h":22895,
-        //                 "l":22884,
-        //                 "n":6,
-        //                 "o":22884,
-        //                 "t":"2022-07-21T05:01:00Z",
-        //                 "v":0.001,
-        //                 "vw":22889.5
-        //              }
-        //           ]
-        //        },
-        //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-        //     }
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":{
-        //              "c":22887,
-        //              "h":22888,
-        //              "l":22873,
-        //              "n":11,
-        //              "o":22883,
-        //              "t":"2022-07-21T05:00:00Z",
-        //              "v":1.1138,
-        //              "vw":22883.0155324116
-        //           }
-        //        }
-        //     }
-        //
-        const bars = this.safeValue(response, 'bars', {});
-        let ohlcvs = this.safeValue(bars, marketId, {});
-        if (!Array.isArray(ohlcvs)) {
-            ohlcvs = [ohlcvs];
+        let fromMs = since;
+        if (since === undefined) {
+            fromMs = this.milliseconds() - limit * duration * 1000;
         }
+        const maxPrepeats = 10;
+        let i = 0;
+        let ohlcvs = [];
+        while (ohlcvs.length < limit && i < maxPrepeats) {
+            const to = this.sum(fromMs, limit * duration * 1000, 1);
+            request['from'] = this.ymdhms(fromMs, 'T') + '.000Z';
+            request['to'] = this.ymdhms(to, 'T') + '.000Z';
+            request['interval'] = this.safeString(this.timeframes, timeframe, 'CANDLE_INTERVAL_UNSPECIFIED');
+            const response = await this.marketdataPostGetCandles(this.extend(request, params));
+            //
+            // { 'candles':
+            //   [
+            //     {
+            //       'open': {'units': '6', 'nano': '530000000'},
+            //       'high': {'units': '6', 'nano': '560000000'},
+            //       'low': {'units': '6', 'nano': '510000000'},
+            //       'close': {'units': '6', 'nano': '500000000'},
+            //       'volume': '427915',
+            //       'time': '2024-02-27T06:59:00Z',
+            //       'isComplete': True,
+            //       'candleSource': 'CANDLE_SOURCE_EXCHANGE'
+            //     }
+            //   ]
+            // }
+            //
+            const newCandles = this.safeValue(response, 'candles', {});
+            if (!Array.isArray(newCandles)) {
+                throw new errors.ExchangeError('No candles');
+            }
+            ohlcvs = this.arrayConcat(ohlcvs, newCandles);
+            i += 1;
+            fromMs = this.sum(fromMs, -limit * duration * 1000);
+        }
+        ohlcvs = this.sortBy(ohlcvs, 'time');
+        ohlcvs = this.arraySlice(ohlcvs, ohlcvs.length - limit, ohlcvs.length);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
-        //     {
-        //        "c":22895,
-        //        "h":22895,
-        //        "l":22884,
-        //        "n":6,
-        //        "o":22884,
-        //        "t":"2022-07-21T05:01:00Z",
-        //        "v":0.001,
-        //        "vw":22889.5
-        //     }
+        //  {
+        //     'open': {'units': '6', 'nano': '530000000'},
+        //     'high': {'units': '6', 'nano': '560000000'},
+        //     'low': {'units': '6', 'nano': '510000000'},
+        //     'close': {'units': '6', 'nano': '500000000'},
+        //     'volume': '427915',
+        //     'time': '2024-02-27T06:59:00Z',
+        //     'isComplete': True,
+        //     'candleSource': 'CANDLE_SOURCE_EXCHANGE'
+        //  }
         //
-        const datetime = this.safeString(ohlcv, 't');
+        const datetime = this.safeString(ohlcv, 'time');
         const timestamp = this.parse8601(datetime);
         return [
             timestamp,
-            this.safeNumber(ohlcv, 'o'),
-            this.safeNumber(ohlcv, 'h'),
-            this.safeNumber(ohlcv, 'l'),
-            this.safeNumber(ohlcv, 'c'),
-            this.safeNumber(ohlcv, 'v'), // volume
+            this.unitToNumber(ohlcv['open']),
+            this.unitToNumber(ohlcv['high']),
+            this.unitToNumber(ohlcv['low']),
+            this.unitToNumber(ohlcv['close']),
+            this.safeInteger(ohlcv, 'volume'),
         ];
+    }
+    unitToNumber(unit = {}) {
+        const units = this.safeInteger(unit, 'units');
+        const nano = this.safeInteger(unit, 'nano');
+        return units + nano / 1000000000;
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#createOrder
          * @description create a trade order
-         * @see https://docs.alpaca.markets/reference/postorder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'stop_limit'
          * @param {string} side 'buy' or 'sell'
@@ -600,7 +641,6 @@ class tinkoff extends tinkoff$1 {
          * @method
          * @name alpaca#cancelOrder
          * @description cancels an open order
-         * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -623,7 +663,6 @@ class tinkoff extends tinkoff$1 {
          * @method
          * @name alpaca#cancelAllOrders
          * @description cancel all open orders in a market
-         * @see https://docs.alpaca.markets/reference/deleteallorders
          * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -642,7 +681,6 @@ class tinkoff extends tinkoff$1 {
          * @method
          * @name alpaca#fetchOrder
          * @description fetches information on an order made by the user
-         * @see https://docs.alpaca.markets/reference/getorderbyorderid
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -661,7 +699,6 @@ class tinkoff extends tinkoff$1 {
          * @method
          * @name alpaca#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @see https://docs.alpaca.markets/reference/getallorders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -737,7 +774,6 @@ class tinkoff extends tinkoff$1 {
          * @method
          * @name alpaca#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @see https://docs.alpaca.markets/reference/getallorders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -755,7 +791,6 @@ class tinkoff extends tinkoff$1 {
          * @method
          * @name alpaca#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @see https://docs.alpaca.markets/reference/getallorders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -865,6 +900,84 @@ class tinkoff extends tinkoff$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    parseBalance(response) {
+        //
+        //   {
+        //     "blockedGuarantee": [
+        //       {
+        //         "nano": 5,
+        //         "currency": "currency",
+        //         "units": "units"
+        //       }
+        //     ],
+        //     "money": [
+        //       {
+        //         "nano": 5,
+        //         "currency": "currency",
+        //         "units": "units"
+        //       }
+        //     ],
+        //     "blocked": [
+        //       {
+        //         "nano": 5,
+        //         "currency": "currency",
+        //         "units": "units"
+        //       }
+        //     ]
+        //   }
+        //
+        const result = { 'info': response };
+        const money = this.safeValue(response, 'money', []);
+        const blocked = this.safeValue(response, 'blocked', []);
+        const blocked_guarantee = this.safeValue(response, 'blockedGuarantee', []);
+        for (let i = 0; i < money.length; i++) {
+            const balance = money[i];
+            const currencyId = this.safeString(balance, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const amount = this.unitToNumber(balance);
+            result[code] = {
+                'free': amount,
+                'total': amount,
+            };
+        }
+        for (let i = 0; i < blocked.length; i++) {
+            const balance = blocked[i];
+            const currencyId = this.safeString(balance, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.safeValue(result, code, {});
+            const amount = this.unitToNumber(balance);
+            account['used'] = amount;
+            const total = this.safeNumber(account, 'total', 0);
+            account['total'] = total + amount;
+        }
+        for (let i = 0; i < blocked_guarantee.length; i++) {
+            const balance = blocked_guarantee[i];
+            const currencyId = this.safeString(balance, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.safeValue(result, code, {});
+            const amount = this.unitToNumber(balance);
+            account['used'] = amount;
+            const total = this.safeNumber(account, 'total', 0);
+            account['total'] = total + amount;
+        }
+        return this.safeBalance(result);
+    }
+    async fetchBalance(params = {}) {
+        /**
+         * @method
+         * @name tinkoff#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        const accounts = await this.loadAccounts();
+        if (accounts.length === 0) {
+            throw new errors.ExchangeError('No accounts found');
+        }
+        params['account_id'] = accounts[0]['id'];
+        const response = await this.operationsPostGetWithdrawLimits(params);
+        return this.parseBalance(response);
+    }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
             'day': 'Day',
@@ -912,17 +1025,15 @@ class tinkoff extends tinkoff$1 {
             'fee': undefined,
         }, market);
     }
-    sign(path, api = 'instruments', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'instruments', method = 'POST', params = {}, headers = undefined, body = undefined) {
+        this.checkRequiredCredentials();
         const endpoint = '/' + this.implodeParams(path, params);
         const url = this.implodeHostname(this.urls['api'][api]) + endpoint;
         headers = (headers !== undefined) ? headers : {};
-        this.checkRequiredCredentials();
         headers['Authorization'] = 'Bearer ' + this.apiKey;
+        headers['Content-Type'] = 'application/json';
         const query = this.omit(params, this.extractParams(path));
-        if (Object.keys(query).length) {
-            body = this.json(query);
-            headers['Content-Type'] = 'application/json';
-        }
+        body = this.json(query);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -934,15 +1045,19 @@ class tinkoff extends tinkoff$1 {
         //     "message": "authentication token is missing or invalid",
         //     "description": "40003"
         // }
-        const feedback = this.id + ' ' + body;
-        const errorCode = this.safeString(response, 'code');
-        const detailedErrorCode = this.safeString(response, 'description');
         if (code !== undefined) {
+            if (code >= 400) {
+                this.log('ERROR:', body);
+            }
+            const feedback = this.id + ' ' + body;
+            const errorCode = this.safeString(response, 'code');
+            const detailedErrorCode = this.safeString(response, 'description');
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], detailedErrorCode, feedback);
         }
         const message = this.safeValue(response, 'message', undefined);
         if (message !== undefined) {
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
