@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.2.53",
+  "version": "4.2.84",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -9,6 +9,9 @@
       "import": "./js/ccxt.js",
       "require": "./dist/ccxt.cjs"
     }
+  },
+  "bin": {
+    "ccxt": "examples/js/cli.js"
   },
   "engines": {
     "node": ">=15.0.0"
@@ -36,14 +39,14 @@
     "build-docs": "node jsdoc2md.js && node examples2md.js",
     "serve-docs": "docsify serve ./wiki",
     "tsBuildFile": "tsc --skipLibCheck --strictNullChecks false --strict --noImplicitAny false --esModuleInterop --isolatedModules false --forceConsistentCasingInFileNames --removeComments false --target ES2020 --declaration --allowJs --checkJs false --moduleResolution Node --module ES2022 --outDir ./js/src --lib ES2020.BigInt --lib dom ",
-    "tsBuild": "tsc || true",
+    "tsBuild": "tsc || echo \"\"",
     "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
     "emitAPI": "node build/generateImplicitAPI.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges && npm run build-docs",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
-    "post-transpile": "npm run check-python-syntax",
+    "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "test-ws": "npm run build && node run-tests --ws --useProxy",
     "test": "npm run build && npm run commonjs-test && npm run static-tests && node run-tests --useProxy",
     "fast-test": "npm run commonjs-test && node run-tests --js --useProxy",
@@ -100,7 +103,7 @@
     "test-ws-cs-base": "npm run test-cs-cache && npm run test-cs-orderbook",
     "vss": "node build/vss",
     "lint": "eslint \"ts/src/*.ts\" \"ts/src/base/Exchange.ts\" \"ts/src/pro/*.ts\" --cache --cache-location .cache/eslintcache --cache-strategy metadata",
-    "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax",
+    "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && npm run lint",
     "eslint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",

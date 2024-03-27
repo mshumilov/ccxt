@@ -562,7 +562,7 @@ export default class okx extends okxRest {
         const storedBids = orderbook['bids'];
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
-        const checksum = this.safeValue(this.options, 'checksum', true);
+        const checksum = this.safeBool(this.options, 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
@@ -1324,7 +1324,8 @@ export default class okx extends okxRest {
             this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, stringMsg, undefined, undefined);
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
-        client.resolve(orders, messageHash);
+        const first = this.safeDict(orders, 0, {});
+        client.resolve(first, messageHash);
     }
     async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
         /**

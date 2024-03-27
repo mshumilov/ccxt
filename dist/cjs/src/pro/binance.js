@@ -84,7 +84,7 @@ class binance extends binance$1 {
                     'future': 200,
                     'delivery': 200,
                 },
-                'streamBySubscriptionsHash': {},
+                'streamBySubscriptionsHash': this.createSafeDictionary(),
                 'streamIndex': -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
@@ -92,7 +92,7 @@ class binance extends binance$1 {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'requestId': {},
+                'requestId': this.createSafeDictionary(),
                 'watchOrderBookLimit': 1000,
                 'watchTrades': {
                     'name': 'trade', // 'trade' or 'aggTrade'
@@ -126,14 +126,14 @@ class binance extends binance$1 {
         });
     }
     requestId(url) {
-        const options = this.safeValue(this.options, 'requestId', {});
+        const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         this.options['requestId'][url] = newValue;
         return newValue;
     }
     stream(type, subscriptionHash, numSubscriptions = 1) {
-        const streamBySubscriptionsHash = this.safeValue(this.options, 'streamBySubscriptionsHash', {});
+        const streamBySubscriptionsHash = this.safeDict(this.options, 'streamBySubscriptionsHash', this.createSafeDictionary());
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
             let streamIndex = this.safeInteger(this.options, 'streamIndex', -1);
@@ -146,7 +146,7 @@ class binance extends binance$1 {
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
             const subscriptionsByStreams = this.safeValue(this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
-                this.options['numSubscriptionsByStream'] = {};
+                this.options['numSubscriptionsByStream'] = this.createSafeDictionary();
             }
             const subscriptionsByStream = this.safeInteger(this.options['numSubscriptionsByStream'], stream, 0);
             const newNumSubscriptions = subscriptionsByStream + numSubscriptions;
@@ -2465,7 +2465,7 @@ class binance extends binance$1 {
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, symbols, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeValue('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue(this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future(type + ':fetchPositionsSnapshot');
@@ -2599,8 +2599,21 @@ class binance extends binance$1 {
         //     }
         //
         const marketId = this.safeString(position, 's');
-        const positionSide = this.safeStringLower(position, 'ps');
-        const hedged = positionSide !== 'both';
+        const contracts = this.safeString(position, 'pa');
+        const contractsAbs = Precise["default"].stringAbs(this.safeString(position, 'pa'));
+        let positionSide = this.safeStringLower(position, 'ps');
+        let hedged = true;
+        if (positionSide === 'both') {
+            hedged = false;
+            if (!Precise["default"].stringEq(contracts, '0')) {
+                if (Precise["default"].stringLt(contracts, '0')) {
+                    positionSide = 'short';
+                }
+                else {
+                    positionSide = 'long';
+                }
+            }
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2611,7 +2624,7 @@ class binance extends binance$1 {
             'entryPrice': this.safeNumber(position, 'ep'),
             'unrealizedPnl': this.safeNumber(position, 'up'),
             'percentage': undefined,
-            'contracts': this.safeNumber(position, 'pa'),
+            'contracts': this.parseNumber(contractsAbs),
             'contractSize': undefined,
             'markPrice': undefined,
             'side': positionSide,
