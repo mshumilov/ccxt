@@ -169,7 +169,7 @@ export default class tinkoff extends Exchange {
         });
     }
 
-    async fetchStatus(params = {}) {
+    async fetchStatus (params = {}) {
         /**
          * @method
          * @name tinkoff#fetchStatus

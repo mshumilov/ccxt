@@ -6,7 +6,14 @@ import type { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderTy
  */
 export default class tinkoff extends Exchange {
     describe(): any;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchStatus(params?: {}): Promise<{
+        status: string;
+        updated: any;
+        eta: any;
+        url: any;
+        info: {};
+    }>;
+    fetchAccounts(params?: {}): Promise<import("./base/types.js").Account[]>;
     parseAccount(account: any): {
         info: any;
         id: string;

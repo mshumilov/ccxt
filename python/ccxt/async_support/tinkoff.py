@@ -87,7 +87,7 @@ class tinkoff(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': False,
-                'fetchStatus': False,
+                'fetchStatus': True,
                 'fetchTicker': False,
                 'fetchTickers': False,
                 'fetchTime': False,
@@ -173,6 +173,20 @@ class tinkoff(Exchange, ImplicitAPI):
                 },
             },
         })
+
+    async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
+        return {
+            'status': 'ok',
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': params,
+        }
 
     async def fetch_accounts(self, params={}):
         """
@@ -455,7 +469,6 @@ class tinkoff(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.log('fetchOHLCV', symbol, timeframe, since, limit, params)
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']

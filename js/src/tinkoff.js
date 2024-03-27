@@ -171,6 +171,22 @@ export default class tinkoff extends Exchange {
             },
         });
     }
+    async fetchStatus(params = {}) {
+        /**
+         * @method
+         * @name tinkoff#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        return {
+            'status': 'ok',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': params,
+        };
+    }
     async fetchAccounts(params = {}) {
         /**
          * @method
@@ -465,7 +481,6 @@ export default class tinkoff extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        this.log('fetchOHLCV', symbol, timeframe, since, limit, params);
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketId = market['id'];

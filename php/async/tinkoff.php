@@ -84,7 +84,7 @@ class tinkoff extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPositions' => false,
-                'fetchStatus' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => false,
                 'fetchTickers' => false,
                 'fetchTime' => false,
@@ -170,6 +170,21 @@ class tinkoff extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+         */
+        return array(
+            'status' => 'ok',
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $params,
+        );
     }
 
     public function fetch_accounts($params = array ()) {
@@ -471,7 +486,6 @@ class tinkoff extends Exchange {
              * @param {int} [$limit] the maximum amount of candles $to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            $this->log('fetchOHLCV', $symbol, $timeframe, $since, $limit, $params);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['id'];
