@@ -56,6 +56,10 @@
 * [fetchMyLiquidations](#fetchmyliquidations)
 * [fetchGreeks](#fetchgreeks)
 * [closePosition](#closeposition)
+* [fetchLeverage](#fetchleverage)
+* [fetchLeverages](#fetchleverages)
+* [fetchOption](#fetchoption)
+* [fetchOptionChain](#fetchoptionchain)
 * [watchOrderBook](#watchorderbook)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -1162,6 +1166,7 @@ Retrieves the open interest of a currency
 | since | <code>int</code> | No | the time(ms) of the earliest record to retrieve as a unix timestamp |
 | limit | <code>int</code> | No | default 30 |
 | params | <code>object</code> | No | exchange specific parameters |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -1388,6 +1393,103 @@ closes open positions for a market
 
 ```javascript
 gate.closePosition (symbol, side[, params])
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>gate</code>](#gate)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**
+
+- https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
+- https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-market
+- https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.unified | <code>boolean</code> | No | default false, set to true for fetching the unified accounts leverage |
+
+
+```javascript
+gate.fetchLeverage (symbol[, params])
+```
+
+
+<a name="fetchLeverages" id="fetchleverages"></a>
+
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all leverage markets, only spot margin is supported on gate
+
+**Kind**: instance method of [<code>gate</code>](#gate)  
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**
+
+- https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
+- https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.unified | <code>boolean</code> | No | default false, set to true for fetching unified account leverages |
+
+
+```javascript
+gate.fetchLeverages (symbols[, params])
+```
+
+
+<a name="fetchOption" id="fetchoption"></a>
+
+### fetchOption{docsify-ignore}
+fetches option data that is commonly found in an option chain
+
+**Kind**: instance method of [<code>gate</code>](#gate)  
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+gate.fetchOption (symbol[, params])
+```
+
+
+<a name="fetchOptionChain" id="fetchoptionchain"></a>
+
+### fetchOptionChain{docsify-ignore}
+fetches data for an underlying asset that is commonly found in an option chain
+
+**Kind**: instance method of [<code>gate</code>](#gate)  
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| currency | <code>string</code> | Yes | base currency to fetch an option chain for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.underlying | <code>string</code> | No | the underlying asset, can be obtained from fetchUnderlyingAssets () |
+| params.expiration | <code>int</code> | No | unix timestamp of the expiration time |
+
+
+```javascript
+gate.fetchOptionChain (currency[, params])
 ```
 
 

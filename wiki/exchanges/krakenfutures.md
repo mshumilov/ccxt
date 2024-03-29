@@ -26,6 +26,7 @@
 * [fetchLeverageTiers](#fetchleveragetiers)
 * [transfer](#transfer)
 * [setLeverage](#setleverage)
+* [fetchLeverages](#fetchleverages)
 * [fetchLeverage](#fetchleverage)
 * [watchTicker](#watchticker)
 * [watchTicker](#watchticker)
@@ -107,7 +108,11 @@ Fetch a history of filled trades that this account has made
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: An array of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
-**See**: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history  
+**See**
+
+- https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
+- https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -117,6 +122,7 @@ Fetch a history of filled trades that this account has made
 | params | <code>object</code> | No | Exchange specific params |
 | params.until | <code>int</code> | No | Timestamp in ms of latest trade |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.method | <code>string</code> | No | The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions' |
 
 
 ```javascript
@@ -514,6 +520,27 @@ set the level of leverage for a market
 
 ```javascript
 krakenfutures.setLeverage (leverage, symbol[, params])
+```
+
+
+<a name="fetchLeverages" id="fetchleverages"></a>
+
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all contract and margin markets
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+krakenfutures.fetchLeverages ([symbols, params])
 ```
 
 

@@ -19,6 +19,9 @@
 * [cancelAllOrders](#cancelallorders)
 * [cancelOrder](#cancelorder)
 * [createOrder](#createorder)
+* [fetchCurrencies](#fetchcurrencies)
+* [fetchDepositAddress](#fetchdepositaddress)
+* [fetchWithdrawals](#fetchwithdrawals)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -330,6 +333,72 @@ create a trade order
 
 ```javascript
 wazirx.createOrder (symbol, type, side, amount[, price, params])
+```
+
+
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>wazirx</code>](#wazirx)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://docs.wazirx.com/#all-coins-39-information-user_data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+wazirx.fetchCurrencies ([params])
+```
+
+
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>wazirx</code>](#wazirx)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+
+**See**: https://docs.wazirx.com/#deposit-address-supporting-network-user_data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code of the currency for the deposit address |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | unified network code, you can get network from fetchCurrencies |
+
+
+```javascript
+wazirx.fetchDepositAddress (code[, params])
+```
+
+
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all withdrawals made from an account
+
+**Kind**: instance method of [<code>wazirx</code>](#wazirx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.wazirx.com/#withdraw-history-supporting-network-user_data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+
+
+```javascript
+wazirx.fetchWithdrawals (code[, since, limit, params])
 ```
 
 

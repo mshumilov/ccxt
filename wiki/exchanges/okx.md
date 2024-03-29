@@ -67,6 +67,8 @@
 * [fetchUnderlyingAssets](#fetchunderlyingassets)
 * [fetchGreeks](#fetchgreeks)
 * [closePosition](#closeposition)
+* [fetchOption](#fetchoption)
+* [fetchOptionChain](#fetchoptionchain)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchTicker](#watchticker)
@@ -241,12 +243,12 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-okx.fetchTickers (symbols[, params])
+okx.fetchTickers ([symbols, params])
 ```
 
 
@@ -461,6 +463,7 @@ create a trade order
 | params.stopLoss.type | <code>string</code> | No | 'market' or 'limit' used to specify the stop loss price type |
 | params.positionSide | <code>string</code> | No | if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short' |
 | params.trailingPercent | <code>string</code> | No | the percent to trail away from the current market price |
+| params.tpOrdKind | <code>string</code> | No | 'condition' or 'limit', the default is 'condition' |
 
 
 ```javascript
@@ -526,6 +529,7 @@ edit a trade order
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.takeProfit.price | <code>float</code> | No | used for take profit limit orders, not used for take profit market price orders |
 | params.takeProfit.type | <code>string</code> | No | 'market' or 'limit' used to specify the take profit price type |
+| params.newTpOrdKind | <code>string</code> | No | 'condition' or 'limit', the default is 'condition' |
 
 
 ```javascript
@@ -1591,6 +1595,49 @@ closes open positions for a market
 
 ```javascript
 okx.closePosition (symbol[, side, params])
+```
+
+
+<a name="fetchOption" id="fetchoption"></a>
+
+### fetchOption{docsify-ignore}
+fetches option data that is commonly found in an option chain
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.fetchOption (symbol[, params])
+```
+
+
+<a name="fetchOptionChain" id="fetchoptionchain"></a>
+
+### fetchOptionChain{docsify-ignore}
+fetches data for an underlying asset that is commonly found in an option chain
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| currency | <code>string</code> | Yes | base currency to fetch an option chain for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uly | <code>string</code> | No | the underlying asset, can be obtained from fetchUnderlyingAssets () |
+
+
+```javascript
+okx.fetchOptionChain (currency[, params])
 ```
 
 

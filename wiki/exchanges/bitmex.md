@@ -24,6 +24,7 @@
 * [cancelOrder](#cancelorder)
 * [cancelOrders](#cancelorders)
 * [cancelAllOrders](#cancelallorders)
+* [fetchLeverages](#fetchleverages)
 * [fetchPositions](#fetchpositions)
 * [withdraw](#withdraw)
 * [fetchFundingRates](#fetchfundingrates)
@@ -469,6 +470,27 @@ cancel all open orders
 
 ```javascript
 bitmex.cancelAllOrders (symbol[, params])
+```
+
+
+<a name="fetchLeverages" id="fetchleverages"></a>
+
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all contract markets
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://www.bitmex.com/api/explorer/#!/Position/Position_get  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmex.fetchLeverages ([symbols, params])
 ```
 
 

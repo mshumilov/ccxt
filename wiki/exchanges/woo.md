@@ -5,6 +5,8 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchStatus](#fetchstatus)
+* [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchTrades](#fetchtrades)
 * [fetchTradingFees](#fetchtradingfees)
@@ -18,6 +20,8 @@
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
+* [fetchOpenOrders](#fetchopenorders)
+* [fetchClosedOrders](#fetchclosedorders)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchOrderTrades](#fetchordertrades)
@@ -34,8 +38,55 @@
 * [withdraw](#withdraw)
 * [repayMargin](#repaymargin)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
+* [setPositionMode](#setpositionmode)
+* [fetchLeverage](#fetchleverage)
+* [watchOrderBook](#watchorderbook)
+* [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
+* [watchTrades](#watchtrades)
+* [watchOrders](#watchorders)
 * [watchPositions](#watchpositions)
 * [watchBalance](#watchbalance)
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+
+**See**: https://docs.woo.org/#get-system-maintenance-status-public  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchStatus ([params])
+```
+
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the exchange server
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+
+**See**: https://docs.woo.org/#get-system-maintenance-status-public  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchTime ([params])
+```
+
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -373,10 +424,75 @@ fetches information on multiple orders made by the user
 | params.isTriggered | <code>boolean</code> | No | whether the order has been triggered (false by default) |
 | params.side | <code>string</code> | No | 'buy' or 'sell' |
 | params.trailing | <code>boolean</code> | No | set to true if you want to fetch trailing orders |
+| params.paginate | <code>boolean</code> | No | set to true if you want to fetch orders with pagination |
 
 
 ```javascript
 woo.fetchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+fetches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://docs.woo.org/#get-orders
+- https://docs.woo.org/#get-algo-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stop | <code>boolean</code> | No | whether the order is a stop/algo order |
+| params.isTriggered | <code>boolean</code> | No | whether the order has been triggered (false by default) |
+| params.side | <code>string</code> | No | 'buy' or 'sell' |
+| params.trailing | <code>boolean</code> | No | set to true if you want to fetch trailing orders |
+| params.paginate | <code>boolean</code> | No | set to true if you want to fetch orders with pagination |
+
+
+```javascript
+woo.fetchOpenOrders (symbol[, since, limit, params])
+```
+
+
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://docs.woo.org/#get-orders
+- https://docs.woo.org/#get-algo-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stop | <code>boolean</code> | No | whether the order is a stop/algo order |
+| params.isTriggered | <code>boolean</code> | No | whether the order has been triggered (false by default) |
+| params.side | <code>string</code> | No | 'buy' or 'sell' |
+| params.trailing | <code>boolean</code> | No | set to true if you want to fetch trailing orders |
+| params.paginate | <code>boolean</code> | No | set to true if you want to fetch orders with pagination |
+
+
+```javascript
+woo.fetchClosedOrders (symbol[, since, limit, params])
 ```
 
 
@@ -460,6 +576,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
 
+**See**: https://docs.woo.org/#get-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -467,6 +584,7 @@ fetch all trades made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | set to true if you want to fetch trades with pagination |
 
 
 ```javascript
@@ -629,6 +747,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
 
+**See**: https://docs.woo.org/#get-transfer-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -652,6 +771,7 @@ fetch a history of internal transfers made on an account
 **Kind**: instance method of [<code>woo</code>](#woo)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
 
+**See**: https://docs.woo.org/#get-transfer-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -659,6 +779,7 @@ fetch a history of internal transfers made on an account
 | since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
 | limit | <code>int</code> | No | the maximum number of  transfers structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
 
 
 ```javascript
@@ -734,6 +855,154 @@ fetches historical funding rate prices
 
 ```javascript
 woo.fetchFundingRateHistory (symbol[, since, limit, params])
+```
+
+
+<a name="setPositionMode" id="setpositionmode"></a>
+
+### setPositionMode{docsify-ignore}
+set hedged to true or false for a market
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://docs.woo.org/#update-position-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| hedged | <code>bool</code> | Yes | set to true to use HEDGE_MODE, false for ONE_WAY |
+| symbol | <code>string</code> | Yes | not used by woo setPositionMode |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.setPositionMode (hedged, symbol[, params])
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://docs.woo.org/#get-account-information-new  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchLeverage (symbol[, params])
+```
+
+
+<a name="watchOrderBook" id="watchorderbook"></a>
+
+### watchOrderBook{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return. |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.watchTicker (symbol[, params])
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.watchTickers (symbols[, params])
+```
+
+
+<a name="watchTrades" id="watchtrades"></a>
+
+### watchTrades{docsify-ignore}
+watches information on multiple trades made in a market
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.watchOrders (symbol[, since, limit, params])
 ```
 
 

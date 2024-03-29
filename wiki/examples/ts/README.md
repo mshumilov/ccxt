@@ -44,6 +44,8 @@
 
 - [Watch Ohlcv For Symbols](./examples/ts/watch-OHLCV-For-Symbols.md)
 
+- [Watch Ohlcv](./examples/ts/watch-OHLCV.md)
+
 - [Watch Orderbook For Symbols](./examples/ts/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/ts/watch-Trades-For-Symbols.md)

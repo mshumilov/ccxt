@@ -261,6 +261,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Watch Ohlcv For Symbols](./examples/js/watch-OHLCV-For-Symbols.md)
 
+- [Watch Ohlcv](./examples/js/watch-OHLCV.md)
+
 - [Watch Orderbook For Symbols](./examples/js/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/js/watch-Trades-For-Symbols.md)

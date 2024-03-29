@@ -37,6 +37,8 @@
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [transfer](#transfer)
 * [fetchFundingHistory](#fetchfundinghistory)
+* [fetchMarginMode](#fetchmarginmode)
+* [fetchLeverages](#fetchleverages)
 * [watchOHLCV](#watchohlcv)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
@@ -137,6 +139,8 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | wallet type, 'spot', 'margin', or 'swap' |
+| params.marginMode | <code>string</code> | No | 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid |
 
 
 ```javascript
@@ -769,6 +773,48 @@ fetch the history of funding payments paid and received on this account
 
 ```javascript
 ascendex.fetchFundingHistory ([symbol, since, limit, params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the set margin mode of the user
+
+**Kind**: instance method of [<code>ascendex</code>](#ascendex)  
+**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/#/?id=margin-mode-structure)
+
+**See**: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+ascendex.fetchMarginMode ([symbols, params])
+```
+
+
+<a name="fetchLeverages" id="fetchleverages"></a>
+
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all contract markets
+
+**Kind**: instance method of [<code>ascendex</code>](#ascendex)  
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+ascendex.fetchLeverages ([symbols, params])
 ```
 
 

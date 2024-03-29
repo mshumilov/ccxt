@@ -17,6 +17,9 @@
 * [fetchOpenOrders](#fetchopenorders)
 * [cancelOrder](#cancelorder)
 * [withdraw](#withdraw)
+* [watchTicker](#watchticker)
+* [watchOrderBook](#watchorderbook)
+* [watchTrades](#watchtrades)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -286,5 +289,69 @@ make a withdrawal
 
 ```javascript
 bithumb.withdraw (code, amount, address, tag[, params])
+```
+
+
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>bithumb</code>](#bithumb)  
+**Returns**: <code>object</code> - a [ticker structure](https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
+
+
+```javascript
+bithumb.watchTicker (symbol[, params])
+```
+
+
+<a name="watchOrderBook" id="watchorderbook"></a>
+
+### watchOrderBook{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>bithumb</code>](#bithumb)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bithumb.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="watchTrades" id="watchtrades"></a>
+
+### watchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>bithumb</code>](#bithumb)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://github.com/ccxt/ccxt/wiki/Manual#public-trades)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bithumb.watchTrades (symbol[, since, limit, params])
 ```
 

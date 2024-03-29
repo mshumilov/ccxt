@@ -48,6 +48,7 @@
 * [fetchPositionMode](#fetchpositionmode)
 * [setPositionMode](#setpositionmode)
 * [editOrder](#editorder)
+* [fetchMarginMode](#fetchmarginmode)
 * [watchTicker](#watchticker)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
@@ -479,7 +480,7 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | a unique id for the order |
 | params.postOnly | <code>bool</code> | No | true to place a post only order |
-| params.timeInForce | <code>string</code> | No | spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK' |
+| params.timeInForce | <code>string</code> | No | spot supports 'PO', 'GTC' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK' |
 | params.reduceOnly | <code>bool</code> | No | *swap only* true or false whether the order is reduce only |
 | params.triggerPrice | <code>float</code> | No | *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered |
 | params.stopLossPrice | <code>float</code> | No | *swap only* stop loss trigger price |
@@ -491,6 +492,7 @@ create a trade order
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
+| params.test | <code>boolean</code> | No | *swap only* whether to use the test endpoint or not, default is false |
 
 
 ```javascript
@@ -1022,6 +1024,7 @@ closes open positions for a market
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
 | params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
+| params.positionId | <code>string</code>, <code>undefined</code> | No | it is recommended to fill in this parameter when closing a position |
 
 
 ```javascript
@@ -1107,12 +1110,33 @@ cancels an order and places a new order
 | params.newClientOrderId | <code>string</code> | No | custom order id consisting of letters, numbers, and _, 1-40 characters, different orders cannot use the same newClientOrderId. |
 | params.positionSide | <code>string</code> | No | *contract only* position direction, required for single position as BOTH, for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty |
 | params.reduceOnly | <code>string</code> | No | *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode |
-| params.priceRate | <code>float</code> | No | *contract only* for type TRAILING_STOP_Market, Max = 1 |
+| params.priceRate | <code>float</code> | No | *contract only* for type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1 |
 | params.workingType | <code>string</code> | No | *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE |
 
 
 ```javascript
 bingx.editOrder (id, symbol, type, side, amount[, price, params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of the trading pair
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+
+**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchMarginMode (symbol[, params])
 ```
 
 

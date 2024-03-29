@@ -36,6 +36,8 @@
 * [fetchSettlementHistory](#fetchsettlementhistory)
 * [fetchGreeks](#fetchgreeks)
 * [closeAllPositions](#closeallpositions)
+* [fetchMarginMode](#fetchmarginmode)
+* [fetchOption](#fetchoption)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -708,5 +710,47 @@ closes all open positions for a market type
 
 ```javascript
 delta.closeAllPositions ([params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of a trading pair
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+
+**See**: https://docs.delta.exchange/#get-user  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchMarginMode (symbol[, params])
+```
+
+
+<a name="fetchOption" id="fetchoption"></a>
+
+### fetchOption{docsify-ignore}
+fetches option data that is commonly found in an option chain
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchOption (symbol[, params])
 ```
 

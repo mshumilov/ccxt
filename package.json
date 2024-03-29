@@ -108,7 +108,7 @@
     "eslint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-python-types": "cd python && tox -e type && cd ..",
-    "check-php-syntax": "false && npm run check-rest-php-syntax && npm run check-ws-php-syntax",
+    "check-php-syntax": "true || (npm run check-rest-php-syntax && npm run check-ws-php-syntax)",
     "check-rest-php-syntax": "php -f php/test/custom/syntax.php",
     "check-ws-php-syntax": "php -f php/pro/test/custom/syntax.php",
     "bundle": "npm run bundle-cjs && npm run bundle-browser",

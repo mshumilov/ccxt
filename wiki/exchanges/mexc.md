@@ -50,6 +50,7 @@
 * [withdraw](#withdraw)
 * [fetchTransactionFees](#fetchtransactionfees)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchLeverage](#fetchleverage)
 
 <a name="fetchStatus" id="fetchstatus"></a>
 
@@ -320,6 +321,12 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported for spot-margin trading |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.postOnly | <code>bool</code> | No | if true, the order will only be posted if it will be a maker order |
+| params.reduceOnly | <code>bool</code> | No | *contract only* indicates if this order is to reduce the size of a position EXCHANGE SPECIFIC PARAMETERS |
+| params.leverage | <code>int</code> | No | *contract only* leverage is necessary on isolated margin |
+| params.positionId | <code>long</code> | No | *contract only* it is recommended to fill in this parameter when closing a position |
+| params.externalOid | <code>string</code> | No | *contract only* external order ID |
+| params.positionMode | <code>int</code> | No | *contract only*  1:hedge, 2:one-way, default: the user's current config |
 
 
 ```javascript
@@ -1040,5 +1047,26 @@ fetch deposit and withdrawal fees
 
 ```javascript
 mexc.fetchDepositWithdrawFees (codes[, params])
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>mexc</code>](#mexc)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mexc.fetchLeverage (symbol[, params])
 ```
 

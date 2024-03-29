@@ -293,6 +293,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.useHistoricalEndpointForSpot | <code>string</code> | No | true/false - whether use the historical candles endpoint for spot markets or default klines endpoint |
 
 
 ```javascript
@@ -767,6 +768,7 @@ fetches historical funding rate prices
 | since | <code>int</code> | No | not used by huobi, but filtered internally by ccxt |
 | limit | <code>int</code> | No | not used by huobi, but filtered internally by ccxt |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript

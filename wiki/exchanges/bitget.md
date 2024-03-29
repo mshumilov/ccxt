@@ -60,6 +60,7 @@
 * [fetchBorrowInterest](#fetchborrowinterest)
 * [closePosition](#closeposition)
 * [closeAllPositions](#closeallpositions)
+* [fetchMarginMode](#fetchmarginmode)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchOHLCV](#watchohlcv)
@@ -332,6 +333,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 
 
@@ -534,7 +536,7 @@ create a trade order
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
 | type | <code>string</code> | Yes | 'market' or 'limit' |
-| side | <code>string</code> | Yes | 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
 | price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -714,6 +716,7 @@ cancel all open orders
 **See**
 
 - https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+- https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
 - https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
 - https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
 - https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -782,7 +785,7 @@ fetch all unfilled currently open orders
 | limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
-| params.planType | <code>string</code> | No | *contract stop only* 'normal_plan': average trigger order, 'track_plan': trailing stop order, default is 'normal_plan' |
+| params.planType | <code>string</code> | No | *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan' |
 | params.stop | <code>boolean</code> | No | set to true for fetching trigger orders |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.isPlan | <code>string</code> | No | *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan' |
@@ -996,15 +999,17 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginCoin | <code>string</code> | No | the settle currency of the positions, needs to match the productType |
 | params.productType | <code>string</code> | No | 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.useHistoryEndpoint | <code>boolean</code> | No | default false, when true  will use the historic endpoint to fetch positions |
+| params.method | <code>string</code> | No | either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition' |
 
 
 ```javascript
-bitget.fetchPositions (symbols[, params])
+bitget.fetchPositions ([symbols, params])
 ```
 
 
@@ -1535,6 +1540,27 @@ closes all open positions for a market type
 
 ```javascript
 bitget.closeAllPositions ([params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of a trading pair
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/account/Get-Single-Account  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.fetchMarginMode (symbol[, params])
 ```
 
 
@@ -1901,6 +1927,7 @@ bitget.watchBalance ([params])
 * [fetchBorrowInterest](#fetchborrowinterest)
 * [closePosition](#closeposition)
 * [closeAllPositions](#closeallpositions)
+* [fetchMarginMode](#fetchmarginmode)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchOHLCV](#watchohlcv)
@@ -2173,6 +2200,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 
 
@@ -2375,7 +2403,7 @@ create a trade order
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
 | type | <code>string</code> | Yes | 'market' or 'limit' |
-| side | <code>string</code> | Yes | 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
 | price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -2555,6 +2583,7 @@ cancel all open orders
 **See**
 
 - https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+- https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order
 - https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
 - https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
 - https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
@@ -2623,7 +2652,7 @@ fetch all unfilled currently open orders
 | limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
-| params.planType | <code>string</code> | No | *contract stop only* 'normal_plan': average trigger order, 'track_plan': trailing stop order, default is 'normal_plan' |
+| params.planType | <code>string</code> | No | *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan' |
 | params.stop | <code>boolean</code> | No | set to true for fetching trigger orders |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.isPlan | <code>string</code> | No | *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan' |
@@ -2837,15 +2866,17 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginCoin | <code>string</code> | No | the settle currency of the positions, needs to match the productType |
 | params.productType | <code>string</code> | No | 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.useHistoryEndpoint | <code>boolean</code> | No | default false, when true  will use the historic endpoint to fetch positions |
+| params.method | <code>string</code> | No | either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition' |
 
 
 ```javascript
-bitget.fetchPositions (symbols[, params])
+bitget.fetchPositions ([symbols, params])
 ```
 
 
@@ -3376,6 +3407,27 @@ closes all open positions for a market type
 
 ```javascript
 bitget.closeAllPositions ([params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of a trading pair
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+
+**See**: https://www.bitget.com/api-doc/contract/account/Get-Single-Account  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitget.fetchMarginMode (symbol[, params])
 ```
 
 

@@ -58,7 +58,7 @@
 * [setLeverage](#setleverage)
 * [setMarginMode](#setmarginmode)
 * [setPositionMode](#setpositionmode)
-* [fetchLeverage](#fetchleverage)
+* [fetchLeverages](#fetchleverages)
 * [fetchSettlementHistory](#fetchsettlementhistory)
 * [fetchMySettlementHistory](#fetchmysettlementhistory)
 * [fetchLedger](#fetchledger)
@@ -79,6 +79,8 @@
 * [fetchMyLiquidations](#fetchmyliquidations)
 * [fetchGreeks](#fetchgreeks)
 * [fetchPositionMode](#fetchpositionmode)
+* [fetchMarginMode](#fetchmarginmode)
+* [fetchOption](#fetchoption)
 * [watchOrderBook](#watchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [watchTradesForSymbols](#watchtradesforsymbols)
@@ -87,6 +89,7 @@
 * [fetchOHLCVWs](#fetchohlcvws)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
+* [watchBidsAsks](#watchbidsasks)
 * [fetchBalanceWs](#fetchbalancews)
 * [watchBalance](#watchbalance)
 * [createOrderWs](#createorderws)
@@ -121,6 +124,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -202,6 +206,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
 | params.symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | No | unified market symbols, only used in isolated margin mode |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch the balance for a portfolio margin account |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -305,6 +310,7 @@ fetches the bid and ask price and volume for multiple markets
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -331,6 +337,7 @@ fetches the last price for multiple markets
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the last prices |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -358,6 +365,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -750,6 +758,7 @@ fetch all unfilled currently open orders
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for spot margin trading |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch open orders in the portfolio margin account |
 | params.stop | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account conditional orders |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -1312,6 +1321,7 @@ fetch the trading fees for a market
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch trading fees in a portfolio margin account |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -1337,6 +1347,7 @@ fetch the trading fees for multiple markets
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -1391,6 +1402,7 @@ fetches historical funding rate prices
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -1416,6 +1428,7 @@ fetch the funding rate for multiple markets
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -1444,6 +1457,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch the leverage tiers for a portfolio margin account |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -1546,6 +1560,7 @@ fetch the history of funding payments paid and received on this account
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding history entry |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch the funding history for a portfolio margin account |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -1630,6 +1645,7 @@ set hedged to true or false for a market
 | symbol | <code>string</code> | Yes | not used by binance setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to set the position mode for a portfolio margin account |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -1637,13 +1653,13 @@ binance.setPositionMode (hedged, symbol[, params])
 ```
 
 
-<a name="fetchLeverage" id="fetchleverage"></a>
+<a name="fetchLeverages" id="fetchleverages"></a>
 
-### fetchLeverage{docsify-ignore}
-fetch the set leverage for a market
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all markets
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
 
 **See**
 
@@ -1655,12 +1671,13 @@ fetch the set leverage for a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
-binance.fetchLeverage (symbol[, params])
+binance.fetchLeverages ([symbols, params])
 ```
 
 
@@ -1736,6 +1753,7 @@ fetch the history of changes, actions done by the user or operations that altere
 | params.until | <code>int</code> | No | timestamp in ms of the latest ledger entry |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch the ledger for a portfolio margin account |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -2054,6 +2072,7 @@ Retrieves the open interest history of a currency
 | limit | <code>int</code> | No | default 30, max 500 |
 | params | <code>object</code> | No | exchange specific parameters |
 | params.until | <code>int</code> | No | the time(ms) of the latest record to retrieve as a unix timestamp |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -2114,6 +2133,8 @@ retrieves the users liquidated positions
 | params.until | <code>int</code> | No | timestamp in ms of the latest liquidation |
 | params.paginate | <code>boolean</code> | No | *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch liquidations in a portfolio margin account |
+| params.type | <code>string</code> | No | "spot" |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
@@ -2151,15 +2172,58 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 **Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbol | <code>string</code> | unified symbol of the market to fetch the order book for |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
-| params.subType | <code>string</code> | "linear" or "inverse" |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 
 ```javascript
-binance.fetchPositionMode (symbol, params[])
+binance.fetchPositionMode (symbol[, params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/#/?id=margin-mode-structure)
+
+**See**: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
+
+
+```javascript
+binance.fetchMarginMode (symbol[, params])
+```
+
+
+<a name="fetchOption" id="fetchoption"></a>
+
+### fetchOption{docsify-ignore}
+fetches option data that is commonly found in an option chain
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+binance.fetchOption (symbol[, params])
 ```
 
 
@@ -2311,7 +2375,7 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.name | <code>string</code> | No | stream to use can be ticker or bookTicker |
+| params.name | <code>string</code> | No | stream to use can be ticker or miniTicker |
 
 
 ```javascript
@@ -2336,6 +2400,32 @@ watches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 binance.watchTickers (symbols[, params])
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches best bid & ask for symbols
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**
+
+- https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
+- https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream
+- https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+binance.watchBidsAsks (symbols[, params])
 ```
 
 

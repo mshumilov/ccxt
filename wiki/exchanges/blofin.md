@@ -26,10 +26,12 @@
 * [transfer](#transfer)
 * [fetchPosition](#fetchposition)
 * [fetchPosition](#fetchposition)
+* [fetchLeverages](#fetchleverages)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
 * [closePosition](#closeposition)
 * [fetchClosedOrders](#fetchclosedorders)
+* [fetchMarginMode](#fetchmarginmode)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -296,6 +298,7 @@ cancels an open order
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | True if cancelling a trigger/conditional order/tp sl orders |
 
 
 ```javascript
@@ -544,6 +547,28 @@ blofin.fetchPosition ([symbols, params])
 ```
 
 
+<a name="fetchLeverages" id="fetchleverages"></a>
+
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all contract markets
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://docs.blofin.com/index.html#get-multiple-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols, required on blofin |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
+
+
+```javascript
+blofin.fetchLeverages (symbols[, params])
+```
+
+
 <a name="fetchLeverage" id="fetchleverage"></a>
 
 ### fetchLeverage{docsify-ignore}
@@ -552,7 +577,7 @@ fetch the set leverage for a market
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
 **Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
 
-**See**: https://blofin.com/docs#set-leverage  
+**See**: https://docs.blofin.com/index.html#get-leverage  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -642,5 +667,26 @@ fetches information on multiple closed orders made by the user
 
 ```javascript
 blofin.fetchClosedOrders (symbol[, since, limit, params])
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of a trading pair
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+
+**See**: https://docs.blofin.com/index.html#get-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchMarginMode (symbol[, params])
 ```
 

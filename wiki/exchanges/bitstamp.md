@@ -28,6 +28,7 @@
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [withdraw](#withdraw)
+* [transfer](#transfer)
 * [watchOrderBook](#watchorderbook)
 * [watchTrades](#watchtrades)
 * [watchOrders](#watchorders)
@@ -211,7 +212,7 @@ fetch the trading fees for a market
 **Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
 **Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
 
-**See**: https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees  
+**See**: https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -558,6 +559,34 @@ make a withdrawal
 
 ```javascript
 bitstamp.withdraw (code, amount, address, tag[, params])
+```
+
+
+<a name="transfer" id="transfer"></a>
+
+### transfer{docsify-ignore}
+transfer currency internally between wallets on the same account
+
+**Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+
+**See**
+
+- https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+- https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account to transfer from |
+| toAccount | <code>string</code> | Yes | account to transfer to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitstamp.transfer (code, amount, fromAccount, toAccount[, params])
 ```
 
 

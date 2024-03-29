@@ -22,6 +22,7 @@
 * [createOrders](#createorders)
 * [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
+* [cancelOrders](#cancelorders)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrderClassic](#fetchorderclassic)
 * [fetchOrderClassic](#fetchorderclassic)
@@ -64,6 +65,10 @@
 * [fetchVolatilityHistory](#fetchvolatilityhistory)
 * [fetchGreeks](#fetchgreeks)
 * [fetchMyLiquidations](#fetchmyliquidations)
+* [fetchLeverageTiers](#fetchleveragetiers)
+* [fetchFundingHistory](#fetchfundinghistory)
+* [fetchOption](#fetchoption)
+* [fetchOptionChain](#fetchoptionchain)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchOHLCV](#watchohlcv)
@@ -171,6 +176,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 
 
 ```javascript
@@ -501,6 +507,29 @@ cancels an open order
 
 ```javascript
 bybit.cancelOrder (id, symbol[, params])
+```
+
+
+<a name="cancelOrders" id="cancelorders"></a>
+
+### cancelOrders{docsify-ignore}
+cancel multiple orders
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/order/batch-cancel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
+
+
+```javascript
+bybit.cancelOrders (ids, symbol[, params])
 ```
 
 
@@ -1170,6 +1199,7 @@ Gets the total amount of unsettled contracts. In other words, the total number o
 | since | <code>int</code> | No | Not used by Bybit |
 | limit | <code>int</code> | No | The number of open interest structures to return. Max 200, default 50 |
 | params | <code>object</code> | No | Exchange specific parameters |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -1519,6 +1549,94 @@ bybit.fetchMyLiquidations ([symbol, since, limit, params])
 ```
 
 
+<a name="fetchLeverageTiers" id="fetchleveragetiers"></a>
+
+### fetchLeverageTiers{docsify-ignore}
+retrieve information on the maximum leverage, for different trade sizes
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+
+**See**: https://bybit-exchange.github.io/docs/v5/market/risk-limit  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | market subType, ['linear', 'inverse'], default is 'linear' |
+
+
+```javascript
+bybit.fetchLeverageTiers ([symbols, params])
+```
+
+
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetch the history of funding payments paid and received on this account
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+
+**See**: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
+| limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+bybit.fetchFundingHistory ([symbol, since, limit, params])
+```
+
+
+<a name="fetchOption" id="fetchoption"></a>
+
+### fetchOption{docsify-ignore}
+fetches option data that is commonly found in an option chain
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchOption (symbol[, params])
+```
+
+
+<a name="fetchOptionChain" id="fetchoptionchain"></a>
+
+### fetchOptionChain{docsify-ignore}
+fetches data for an underlying asset that is commonly found in an option chain
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/market/tickers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| currency | <code>string</code> | Yes | base currency to fetch an option chain for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchOptionChain (currency[, params])
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -1547,7 +1665,7 @@ bybit.watchTicker (symbol[, params])
 <a name="watchTickers" id="watchtickers"></a>
 
 ### watchTickers{docsify-ignore}
-n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)

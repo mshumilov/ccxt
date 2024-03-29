@@ -136,6 +136,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Watch Ohlcv For Symbols](./examples/php/watch-OHLCV-For-Symbols.md)
 
+- [Watch Ohlcv](./examples/php/watch-OHLCV.md)
+
 - [Watch Orderbook For Symbols](./examples/php/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/php/watch-Trades-For-Symbols.md)

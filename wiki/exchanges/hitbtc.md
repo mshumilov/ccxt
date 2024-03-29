@@ -699,7 +699,7 @@ hitbtc.createOrder (symbol, type, side, amount[, price, params])
 fetches margin mode of the user
 
 **Kind**: instance method of [<code>hitbtc</code>](#hitbtc)  
-**Returns**: <code>object</code> - Struct of MarginMode
+**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/#/?id=margin-mode-structure)
 
 **See**
 

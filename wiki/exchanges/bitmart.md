@@ -638,6 +638,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
 
+**See**: https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

@@ -56,7 +56,7 @@ retrieves data on all markets for kraken
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -117,7 +117,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
-**See**: https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -139,7 +139,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -160,7 +160,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -181,7 +181,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -230,7 +230,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
-**See**: https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -562,7 +562,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime  
+**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

@@ -12,6 +12,7 @@
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
@@ -188,6 +189,27 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 kucoinfutures.fetchTicker (symbol[, params])
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kucoinfutures.fetchTickers ([symbols, params])
 ```
 
 

@@ -42,6 +42,8 @@
 * [transfer](#transfer)
 * [fetchLedger](#fetchledger)
 * [fetchBorrowInterest](#fetchborrowinterest)
+* [fetchBorrowRateHistories](#fetchborrowratehistories)
+* [fetchBorrowRateHistory](#fetchborrowratehistory)
 * [borrowCrossMargin](#borrowcrossmargin)
 * [borrowIsolatedMargin](#borrowisolatedmargin)
 * [repayCrossMargin](#repaycrossmargin)
@@ -1042,6 +1044,56 @@ fetch the interest owed by the user for borrowing currency for margin trading
 
 ```javascript
 kucoin.fetchBorrowInterest (code, symbol[, since, limit, params])
+```
+
+
+<a name="fetchBorrowRateHistories" id="fetchborrowratehistories"></a>
+
+### fetchBorrowRateHistories{docsify-ignore}
+retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a dictionary of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) indexed by the market symbol
+
+**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified currency codes, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest borrowRate, default is undefined |
+| limit | <code>int</code> | No | max number of borrow rate prices to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' default is 'cross' |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+
+
+```javascript
+kucoin.fetchBorrowRateHistories (codes[, since, limit, params])
+```
+
+
+<a name="fetchBorrowRateHistory" id="fetchborrowratehistory"></a>
+
+### fetchBorrowRateHistory{docsify-ignore}
+retrieves a history of a currencies borrow interest rate at specific time slots
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure)
+
+**See**: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | timestamp for the earliest borrow rate |
+| limit | <code>int</code> | No | the maximum number of [borrow rate structures](https://docs.ccxt.com/#/?id=borrow-rate-structure) to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' default is 'cross' |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+
+
+```javascript
+kucoin.fetchBorrowRateHistory (code[, since, limit, params])
 ```
 
 

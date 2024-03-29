@@ -48,6 +48,7 @@
 * [borrowIsolatedMargin](#borrowisolatedmargin)
 * [repayIsolatedMargin](#repayisolatedmargin)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchLeverages](#fetchleverages)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -1049,7 +1050,7 @@ create a loan to borrow margin
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
 **Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
 
-**See**: https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan  
+**See**: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account017_margin_loan  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1072,7 +1073,7 @@ repay borrowed margin and interest
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
 **Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
 
-**See**: https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat  
+**See**: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account018_margin_flat  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1106,6 +1107,27 @@ fetch deposit and withdraw fees
 
 ```javascript
 coinex.fetchDepositWithdrawFees (codes[, params])
+```
+
+
+<a name="fetchLeverages" id="fetchleverages"></a>
+
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all contract and margin markets
+
+**Kind**: instance method of [<code>coinex</code>](#coinex)  
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinex.fetchLeverages ([symbols, params])
 ```
 
 

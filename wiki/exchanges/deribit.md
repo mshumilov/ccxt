@@ -42,13 +42,18 @@
 * [fetchLiquidations](#fetchliquidations)
 * [fetchMyLiquidations](#fetchmyliquidations)
 * [fetchGreeks](#fetchgreeks)
+* [fetchOption](#fetchoption)
+* [fetchOptionChain](#fetchoptionchain)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
 * [watchMyTrades](#watchmytrades)
 * [watchOrderBook](#watchorderbook)
+* [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [watchOrders](#watchorders)
 * [watchOHLCV](#watchohlcv)
+* [watchOHLCVForSymbols](#watchohlcvforsymbols)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -271,6 +276,8 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | whether to paginate the results, set to false by default |
+| params.until | <code>int</code> | No | the latest time in ms to fetch ohlcv for |
 
 
 ```javascript
@@ -298,6 +305,7 @@ get the list of most recent trades for a particular symbol.
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
 
 
 ```javascript
@@ -900,6 +908,48 @@ deribit.fetchGreeks (symbol[, params])
 ```
 
 
+<a name="fetchOption" id="fetchoption"></a>
+
+### fetchOption{docsify-ignore}
+fetches option data that is commonly found in an option chain
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://docs.deribit.com/#public-get_book_summary_by_instrument  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+deribit.fetchOption (symbol[, params])
+```
+
+
+<a name="fetchOptionChain" id="fetchoptionchain"></a>
+
+### fetchOptionChain{docsify-ignore}
+fetches data for an underlying asset that is commonly found in an option chain
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+
+**See**: https://docs.deribit.com/#public-get_book_summary_by_currency  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| currency | <code>string</code> | Yes | base currency to fetch an option chain for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+deribit.fetchOptionChain (currency[, params])
+```
+
+
 <a name="watchBalance" id="watchbalance"></a>
 
 ### watchBalance{docsify-ignore}
@@ -966,6 +1016,29 @@ deribit.watchTrades (symbol[, since, limit, params])
 ```
 
 
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://docs.deribit.com/#trades-instrument_name-interval  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+deribit.watchTradesForSymbols (symbols[, since, limit, params])
+```
+
+
 <a name="watchMyTrades" id="watchmytrades"></a>
 
 ### watchMyTrades{docsify-ignore}
@@ -998,7 +1071,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
-**See**: https://docs.deribit.com/#public-get_book_summary_by_instrument  
+**See**: https://docs.deribit.com/#book-instrument_name-group-depth-interval  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1010,6 +1083,28 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 deribit.watchOrderBook (symbol[, limit, params])
+```
+
+
+<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
+
+### watchOrderBookForSymbols{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**: https://docs.deribit.com/#book-instrument_name-group-depth-interval  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+deribit.watchOrderBookForSymbols (symbols[, limit, params])
 ```
 
 
@@ -1057,5 +1152,28 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 deribit.watchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="watchOHLCVForSymbols" id="watchohlcvforsymbols"></a>
+
+### watchOHLCVForSymbols{docsify-ignore}
+watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>deribit</code>](#deribit)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.deribit.com/#chart-trades-instrument_name-resolution  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+deribit.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
 ```
 

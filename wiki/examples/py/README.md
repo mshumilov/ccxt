@@ -463,6 +463,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Watch Ohlcv For Symbols](./examples/py/watch-OHLCV-For-Symbols.md)
 
+- [Watch Ohlcv](./examples/py/watch-OHLCV.md)
+
 - [Watch Orderbook For Symbols](./examples/py/watch-OrderBook-For-Symbols.md)
 
 - [Watch Trades For Symbols](./examples/py/watch-Trades-For-Symbols.md)
